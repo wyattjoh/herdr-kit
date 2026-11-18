@@ -5,7 +5,7 @@
 import { div, svg, type Color, type Context, type Element } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
 import { HERDR_ICONS } from "../icons";
-import { CARD, FOLD_MOTION, PROGRESS, ROW, TEXT, TONES } from "../tokens";
+import { CARD, FOLD_MOTION, PROGRESS, ROW, STATE, TEXT, TONES } from "../tokens";
 import { role, type Theme } from "./theme";
 
 /**
@@ -93,23 +93,76 @@ export const cardNote = (t: Theme, text: string): Element =>
   cardBody().text_size(TEXT.label).text_color(t.dim).child(text);
 
 /**
+ * Rules an item off from the one above, unless it's a card's first, which the card's outline
+ * already rules off.
+ * @param t The theme.
+ * @param el The item.
+ * @param first Whether it is the card's first item.
+ * @returns The item.
+ */
+const ruled = (t: Theme, el: Element, first: boolean): Element =>
+  el.when(!first, (item) => item.border_t(1).border_color(t.border));
+
+/**
  * A row of a card, ruled off from the one above; it highlights on hover.
  * @param t The theme.
  * @param id The row's id.
  * @param hover The hover fill; default `hover`.
+ * @param first The card's first row in a plain card (no {@link groupBlock}): no top rule, and its
+ *   hover fill rounds the card's top corners.
  * @returns The row; set its height and add its parts.
  */
-export const cardRow = (t: Theme, id: string, hover: Color = t.hover): Element =>
-  h_flex()
-    .id(id)
-    .flex_none()
-    .px(CARD.paddingX)
-    .gap(CARD.rowGap)
-    .items_center()
-    .cursor_pointer()
-    .hover((s) => s.bg(hover))
-    .border_t(1)
-    .border_color(t.border);
+export const cardRow = (
+  t: Theme,
+  id: string,
+  hover: Color = t.hover,
+  first: boolean = false,
+): Element =>
+  ruled(
+    t,
+    h_flex()
+      .id(id)
+      .flex_none()
+      .px(CARD.paddingX)
+      .gap(CARD.rowGap)
+      .items_center()
+      .cursor_pointer()
+      .hover((s) => s.bg(hover)),
+    first,
+  ).when(first, (el) => el.rounded_t(CARD.innerRadius));
+
+/**
+ * A card row that isn't a click target itself, because its buttons are: a {@link cardRow}'s
+ * spacing and rule without its pointer and hover.
+ * @param t The theme.
+ * @param id The row's id.
+ * @param first The card's first row: no top rule.
+ * @returns The row; set its height and add its parts.
+ */
+export const staticRow = (t: Theme, id: string, first: boolean = false): Element =>
+  ruled(t, h_flex().id(id).flex_none().px(CARD.paddingX).gap(CARD.rowGap).items_center(), first);
+
+/**
+ * A card item of several lines, padded like a {@link cardBody} and ruled off from the one above
+ * like a row, such as a comment.
+ * @param t The theme.
+ * @param id The item's id.
+ * @param first The card's first item: no top rule.
+ * @returns The item; add its lines.
+ */
+export const cardItem = (t: Theme, id: string, first: boolean = false): Element =>
+  ruled(
+    t,
+    v_flex()
+      .id(id)
+      .flex_none()
+      .min_w_0()
+      .w_full()
+      .px(CARD.paddingX)
+      .py(CARD.paddingY)
+      .gap(STATE.gap),
+    first,
+  );
 
 /**
  * What a {@link listRow} shows and does.
@@ -138,7 +191,14 @@ export type ListRowOptions = {
    */
   height?: number;
   tooltip?: string;
-  onClick: (cx: Context) => void;
+  /**
+   * The card's first row in a plain card (no {@link groupBlock}): no top rule.
+   */
+  first?: boolean;
+  /**
+   * The press handler; without one the row is a {@link staticRow}, with no pointer or hover.
+   */
+  onClick?: (cx: Context) => void;
 };
 
 /**
@@ -148,10 +208,14 @@ export type ListRowOptions = {
  * @returns The row.
  */
 export function listRow(t: Theme, options: ListRowOptions): Element {
-  return cardRow(t, options.id)
+  const { onClick } = options;
+  const first = options.first ?? false;
+  return (
+    onClick === undefined ? staticRow(t, options.id, first) : cardRow(t, options.id, t.hover, first)
+  )
     .h(options.height ?? ROW.list)
     .when(options.tooltip !== undefined, (el) => el.tooltip(options.tooltip!))
-    .on_click((_event, cx) => options.onClick(cx))
+    .when(onClick !== undefined, (el) => el.on_click((_event, cx) => onClick!(cx)))
     .when(options.mark !== undefined, (el) => el.child(options.mark!))
     .when(options.label !== undefined && options.label !== "", (el) =>
       el.child(div().flex_none().text_size(TEXT.label).text_color(t.muted).child(options.label!)),
@@ -178,14 +242,24 @@ export const rowNote = (t: Theme, text: string): Element =>
   div().flex_none().text_size(TEXT.label).text_color(t.dim).child(text);
 
 /**
- * A status mark at the size list rows give their icons.
+ * A status mark at the size list rows give their icons. Herdr wires a tooltip only on a flex or
+ * div element, not on an `svg`, so a tooltipped mark is the icon in a wrapper that carries it.
  * @param t The theme.
  * @param icon The `svg()` path.
  * @param tone The theme role tinting it.
+ * @param tooltip What the mark means, such as a run's phase and outcome.
  * @returns The mark.
  */
-export const statusMark = (t: Theme, icon: string, tone: string): Element =>
-  svg(icon).size(14).flex_none().text_color(role(t, tone));
+export function statusMark(
+  t: Theme,
+  icon: string,
+  tone: string,
+  tooltip: string | undefined = undefined,
+): Element {
+  const mark = svg(icon).size(14).flex_none().text_color(role(t, tone));
+  if (tooltip === undefined) return mark;
+  return h_flex().flex_none().items_center().tooltip(tooltip).child(mark);
+}
 
 /**
  * One collapsible group of a card: a header band with its label in its tone, the chevron and its

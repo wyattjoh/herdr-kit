@@ -1,5 +1,6 @@
-// Small badges: a label chip on `raised`, and a count chip tinted in its own color.
-import { div, svg, type Color, type Element } from "gpui-kit";
+// Small badges: a label chip on `raised`, a toggle chip that applies a label, and a count chip
+// tinted in its own color.
+import { div, svg, type Color, type Context, type Element } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { tint } from "../color";
 import { CHIP } from "../tokens";
@@ -67,6 +68,90 @@ export function labelChip(t: Theme, options: LabelChipOptions): Element {
         .text_color((options.color as Color | undefined) ?? t.muted),
     )
     .child(div().min_w_0().truncate().child(options.label));
+}
+
+/**
+ * What a {@link toggleChip} shows and does.
+ */
+export type ToggleChipOptions = {
+  id: string;
+  label: string;
+  /**
+   * Whether the label is applied: a filled chip, else an outlined one.
+   */
+  applied: boolean;
+  /**
+   * A change to this chip is in flight: the label ends in an ellipsis and the chip is inert.
+   */
+  pending?: boolean;
+  /**
+   * The color dot's color (data, such as a forge label's `#rrggbb`); no dot when undefined.
+   */
+  color: string | undefined;
+  /**
+   * The tooltip and accessibility label; default the label.
+   */
+  caption?: string;
+  /**
+   * Applies or removes the label; without one (or while pending) the chip is inert, and an
+   * unapplied one dims.
+   */
+  onClick?: (cx: Context) => void;
+};
+
+/**
+ * A label chip that toggles its label: applied on `raised`, unapplied outlined, with an optional
+ * color dot before the truncating name.
+ * @param t The theme.
+ * @param options What it shows and does.
+ * @returns The chip.
+ */
+export function toggleChip(t: Theme, options: ToggleChipOptions): Element {
+  const caption = options.caption ?? options.label;
+  const pending = options.pending ?? false;
+  const { applied, color } = options;
+  const onClick = pending ? undefined : options.onClick;
+  return h_flex()
+    .id(options.id)
+    .flex_shrink_0()
+    .h(CHIP.height)
+    .max_w(CHIP.maxWidth)
+    .min_w_0()
+    .px(CHIP.paddingX)
+    .gap(CHIP.gap)
+    .items_center()
+    .rounded(CHIP.radius)
+    .text_size(CHIP.textSize)
+    .tooltip(caption)
+    .accessibility_label(caption)
+    .when(applied, (chip) => chip.bg(t.raised).text_color(t.foreground))
+    .when(!applied, (chip) =>
+      chip
+        .border(1)
+        .border_color(t.border)
+        .text_color(onClick === undefined ? t.dim : t.muted),
+    )
+    .when(onClick !== undefined, (chip) =>
+      chip
+        .cursor_pointer()
+        .hover((style) => style.bg(t.hover))
+        .on_click((_event, cx) => onClick!(cx)),
+    )
+    .when(color !== undefined, (chip) =>
+      chip.child(
+        div()
+          .size(CHIP.dotSize)
+          .flex_none()
+          .rounded(CHIP.dotSize / 2)
+          .bg(color as Color),
+      ),
+    )
+    .child(
+      div()
+        .min_w_0()
+        .truncate()
+        .child(pending ? `${options.label} …` : options.label),
+    );
 }
 
 /**

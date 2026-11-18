@@ -23,7 +23,7 @@
 
 ## Conventions
 
-- Look parity with the Tasks panel is the contract: element chains are copied from `tasks/herdr/src/view.ts` in the same call order, and their numbers live in `src/tokens.ts` or `src/toolbar.ts`. Don't normalise a value without changing it in Tasks too.
+- Look parity with the Tasks panel is the contract: element chains are copied from `tasks/herdr/src/view.ts` in the same call order, and their numbers live in `src/tokens.ts` or `src/toolbar.ts`. Don't normalise a value without changing it in Tasks too. Pieces Tasks doesn't have (`staticRow`, `cardItem`, `toggleChip`, `CHIP.dotSize`) come from the CI panel in herdr-git-forge (`src/mods/panel/`); `togglePill` follows both toggles.
 - Pieces stay domain-neutral: ids, labels, icons, tones and heights are parameters. Domain status maps belong to consumers (`toneMap` turns their states into tones).
 - Write for strict TypeScript with extensionless relative imports: consumers compile the shipped sources (Tasks without `strictNullChecks`, the CI panel strict).
 - Data types use `| undefined` over `?`; option bags for element functions use `?` for optional styling so call sites stay short.

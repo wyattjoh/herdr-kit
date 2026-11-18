@@ -36,6 +36,15 @@ export const BUTTON_STYLE: ButtonStyle = {
 };
 
 /**
+ * The theme roles a lit toggle pill takes over its {@link ButtonStyle}: the Tasks and CI toggles'
+ * on state.
+ */
+export const LIT_STYLE = {
+  background: "selected",
+  text: "foreground",
+} as const;
+
+/**
  * Space between a toolbar's buttons, in px.
  */
 export const TOOL_GAP = 6;

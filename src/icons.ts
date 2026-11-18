@@ -16,6 +16,8 @@ export const BUNDLED_ICONS = {
   anchorOff: "anchor-off.svg",
   pinFilled: "pin-filled.svg",
   returnTo: "return.svg",
+  tag: "tag.svg",
+  refresh: "refresh-cw.svg",
 } as const;
 
 /**

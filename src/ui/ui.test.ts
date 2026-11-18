@@ -1,10 +1,19 @@
 import { describe, expect, test } from "bun:test";
 import { byId, nodeOf, texts, walk } from "../test/renderer";
 import { THEME as t } from "../test/theme";
-import { button } from "./controls";
+import { button, togglePill } from "./controls";
 import { crumb, crumbBand, crumbPicker, titleRow } from "./crumbs";
-import { card, groupBlock, listRow, progressBar } from "./cards";
-import { countChip, labelChip } from "./chips";
+import {
+  card,
+  cardItem,
+  cardRow,
+  groupBlock,
+  listRow,
+  progressBar,
+  staticRow,
+  statusMark,
+} from "./cards";
+import { countChip, labelChip, toggleChip } from "./chips";
 import { tabBar } from "./tabs";
 import { panelFrame, toolRow, topBar } from "./frame";
 import { stateBlock } from "./states";
@@ -232,5 +241,154 @@ describe("chips, tabs, states, menus, scroll", () => {
       ctor: "s",
       right: -12,
     });
+  });
+});
+
+const INTERACTIVE = ["cursor_pointer", "hover", "on_click"];
+const interactive = (element: unknown) =>
+  nodeOf(element).calls.filter((call) => INTERACTIVE.includes(call));
+
+describe("static rows and first rows", () => {
+  test("a card row keeps its pointer, hover and top rule by default", () => {
+    const row = nodeOf(cardRow(t, "r"));
+    expect(row.calls).toEqual(expect.arrayContaining(["cursor_pointer", "hover", "border_t"]));
+    expect(row.styles).toMatchObject({ border_t: 1, border_color: "#border" });
+    expect(row.styles.rounded_t).toBeUndefined();
+    const list = nodeOf(listRow(t, { id: "l", title: "T", onClick: () => {} }));
+    expect(list.calls).toEqual(expect.arrayContaining(["cursor_pointer", "hover", "on_click"]));
+    expect(list.styles.border_t).toBe(1);
+  });
+  test("a first row drops its top rule and rounds its hover into the card's corners", () => {
+    const row = nodeOf(cardRow(t, "r", t.hover, true));
+    expect(row.styles.border_t).toBeUndefined();
+    expect(row.styles.rounded_t).toBe(7);
+    expect(row.hoverStyles).toEqual({ bg: "#hover" });
+    const list = nodeOf(listRow(t, { id: "l", title: "T", first: true, onClick: () => {} }));
+    expect(list.styles.border_t).toBeUndefined();
+  });
+  test("a static row and a list row without a handler are inert", () => {
+    const row = staticRow(t, "s");
+    expect(interactive(row)).toEqual([]);
+    expect(nodeOf(row).styles).toMatchObject({ px: 10, gap: 7, border_t: 1 });
+    expect(nodeOf(staticRow(t, "s", true)).styles.border_t).toBeUndefined();
+    const list = listRow(t, { id: "l", label: "#1", title: "T", tooltip: "tip" });
+    expect(interactive(list)).toEqual([]);
+    expect(nodeOf(list).click).toBeUndefined();
+    expect(nodeOf(list).styles).toMatchObject({ h: 34, tooltip: "tip", border_t: 1 });
+    expect(texts(list)).toEqual(["#1", "T"]);
+  });
+  test("a card item pads its lines and rules off unless first", () => {
+    const item = nodeOf(cardItem(t, "c"));
+    expect(item.kind).toBe("v_flex");
+    expect(item.styles).toMatchObject({ px: 10, py: 8, gap: 4, border_t: 1 });
+    expect(interactive(cardItem(t, "c"))).toEqual([]);
+    expect(nodeOf(cardItem(t, "c", true)).styles.border_t).toBeUndefined();
+  });
+  test("a status mark takes an optional tooltip on a wrapper, since an svg can't carry one", () => {
+    const bare = nodeOf(statusMark(t, "x.svg", "ansi2"));
+    expect(bare.kind).toBe("svg");
+    expect(bare.styles).toMatchObject({ asset: "x.svg", size: 14, text_color: "#ansi2" });
+    expect(bare.styles.tooltip).toBeUndefined();
+    const tipped = nodeOf(statusMark(t, "x.svg", "ansi2", "running · unavailable"));
+    expect(tipped.kind).toBe("h_flex");
+    expect(tipped.styles).toMatchObject({ flex_none: true, tooltip: "running · unavailable" });
+    const glyph = walk(tipped).find((n) => n.kind === "svg")!;
+    expect(glyph.styles).toMatchObject({ asset: "x.svg", size: 14, text_color: "#ansi2" });
+    expect(glyph.styles.tooltip).toBeUndefined();
+  });
+});
+
+describe("toggle chip", () => {
+  test("an applied chip fills on raised and toggles", () => {
+    let pressed = 0;
+    const chip = toggleChip(t, {
+      id: "c",
+      label: "bug",
+      applied: true,
+      color: "#ff0000",
+      caption: "Remove bug",
+      onClick: () => pressed++,
+    });
+    const node = nodeOf(chip);
+    expect(node.styles).toMatchObject({
+      h: 18,
+      px: 4,
+      rounded: 3,
+      bg: "#raised",
+      text_color: "#foreground",
+      tooltip: "Remove bug",
+    });
+    expect(node.styles.border).toBeUndefined();
+    expect(node.hoverStyles).toEqual({ bg: "#hover" });
+    expect(walk(chip).some((n) => n.styles.size === 8 && n.styles.bg === "#ff0000")).toBe(true);
+    node.click!(undefined, undefined);
+    expect(pressed).toBe(1);
+  });
+  test("an unapplied chip is outlined and muted; dim when inert", () => {
+    const enabled = nodeOf(
+      toggleChip(t, { id: "c", label: "bug", applied: false, color: undefined, onClick: () => {} }),
+    );
+    expect(enabled.styles).toMatchObject({
+      border: 1,
+      border_color: "#border",
+      text_color: "#muted",
+      tooltip: "bug",
+    });
+    const inert = toggleChip(t, { id: "c", label: "bug", applied: false, color: undefined });
+    expect(nodeOf(inert).styles.text_color).toBe("#dim");
+    expect(interactive(inert)).toEqual([]);
+    expect(walk(inert).some((n) => n.styles.size === 8)).toBe(false);
+  });
+  test("a pending chip is inert and trails an ellipsis", () => {
+    const chip = toggleChip(t, {
+      id: "c",
+      label: "bug",
+      applied: true,
+      pending: true,
+      color: undefined,
+      onClick: () => {},
+    });
+    expect(interactive(chip)).toEqual([]);
+    expect(texts(chip)).toEqual(["bug …"]);
+  });
+});
+
+describe("toggle pill", () => {
+  test("draws the panel button's metrics and lights while shown", () => {
+    let pressed = 0;
+    const unlit = togglePill(t, {
+      id: "p",
+      label: "CI",
+      icon: "i.svg",
+      lit: false,
+      tooltip: "CI passing",
+      onClick: () => pressed++,
+    });
+    expect(nodeOf(unlit).styles).toMatchObject({
+      id: "p",
+      h: 26,
+      px: 8,
+      gap: 5,
+      rounded: 6,
+      text_size: 12,
+      bg: "#chrome",
+      text_color: "#muted",
+      tooltip: "CI passing",
+    });
+    expect(nodeOf(unlit).hoverStyles).toEqual({ bg: "#hover" });
+    expect(walk(unlit).find((n) => n.kind === "svg")!.styles).toMatchObject({
+      asset: "i.svg",
+      size: 14,
+    });
+    expect(texts(unlit)).toEqual(["CI"]);
+    nodeOf(unlit).click!(undefined, undefined);
+    expect(pressed).toBe(1);
+    const lit = nodeOf(togglePill(t, { id: "p", label: "CI", lit: true, onClick: () => {} }));
+    expect(lit.styles).toMatchObject({ bg: "#selected", text_color: "#foreground" });
+  });
+  test("an inert pill dims, with no pointer or hover", () => {
+    const pill = togglePill(t, { id: "p", label: "CI", lit: true });
+    expect(nodeOf(pill).styles).toMatchObject({ bg: "#selected", text_color: "#dim" });
+    expect(interactive(pill)).toEqual([]);
   });
 });

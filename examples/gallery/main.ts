@@ -7,9 +7,11 @@ import { theme } from "herdr";
 import {
   brand,
   BRAND,
+  bundledIconPaths,
   button,
   card,
   cardHeader,
+  cardItem,
   cardNote,
   cardSection,
   chipRow,
@@ -39,11 +41,14 @@ import {
   PANEL,
   progressBar,
   rowNote,
+  staticRow,
   statusMark,
   stopPress,
   tabBar,
   titleIcon,
   titleRow,
+  toggleChip,
+  togglePill,
   toneMap,
   toolRow,
   topBar,
@@ -52,6 +57,7 @@ import {
 
 const MOD = "herdr-ui-gallery";
 const ICONS = panelIcons(MOD);
+const BUNDLED = bundledIconPaths(MOD);
 const runTone = toneMap({
   queued: "neutral",
   running: "active",
@@ -65,6 +71,8 @@ export default class Gallery extends View {
   private open = new Set<string>(["passed"]);
   private picker = false;
   private document = false;
+  private applied = new Set<string>(["bug"]);
+  private shown = false;
   private search: InputState | undefined;
 
   init(_props: unknown, _cx: AsyncContext): void {
@@ -151,6 +159,12 @@ export default class Gallery extends View {
               }),
             ),
             trailing: [
+              button(t, {
+                id: "refresh",
+                label: "Refresh",
+                icon: BUNDLED.refresh,
+                onClick: () => {},
+              }),
               button(t, {
                 id: "open",
                 label: "Open in browser",
@@ -249,6 +263,8 @@ export default class Gallery extends View {
         }),
       )
       .child(this.groups(t))
+      .child(this.plain(t))
+      .child(this.toggles(t))
       .child(
         cardSection(
           cardHeader(t, "empty-header", "Empty"),
@@ -283,6 +299,112 @@ export default class Gallery extends View {
           .child(rowNote(t, "Menu surface")),
       )
       .child(this.overlay(t));
+  }
+
+  // A plain card (no groups): a first row with no top rule, a static row whose button is the
+  // click target, an inert list row with a tooltipped mark, and a multi-line item.
+  private plain(t: Theme): Element {
+    return cardSection(
+      cardHeader(t, "checks-header", "Checks"),
+      card(t, "checks")
+        .child(
+          listRow(t, {
+            id: "check-build",
+            mark: statusMark(t, HERDR_ICONS.circleCheck, runTone("passed"), "completed · success"),
+            title: "build",
+            first: true,
+            onClick: () => {},
+          }),
+        )
+        .child(
+          staticRow(t, "check-lint")
+            .h(34)
+            .child(statusMark(t, HERDR_ICONS.spinner, runTone("running"), "running · unavailable"))
+            .child(rowNote(t, "lint"))
+            .child(button(t, { id: "check-lint-open", label: "Logs", onClick: () => {} })),
+        )
+        .child(
+          listRow(t, {
+            id: "check-test",
+            mark: statusMark(t, HERDR_ICONS.clock, runTone("queued"), "queued · unavailable"),
+            title: "test",
+          }),
+        )
+        .child(
+          cardItem(t, "check-note")
+            .child(rowNote(t, "octocat · 2m"))
+            .child(rowNote(t, "A comment of several lines.")),
+        ),
+    );
+  }
+
+  // Label toggles (applied, unapplied, pending, inert), a tag label chip, and the toggle pill
+  // lit, unlit and inert.
+  private toggles(t: Theme): Element {
+    const flip = (name: string, cx: Context) => {
+      if (!this.applied.delete(name)) this.applied.add(name);
+      cx.notify();
+    };
+    return cardSection(
+      cardHeader(t, "labels-header", "Labels"),
+      card(t, "labels").child(
+        cardItem(t, "labels-body", true)
+          .child(
+            chipRow([
+              ...["bug", "docs"].map((name) =>
+                toggleChip(t, {
+                  id: `label-${name}`,
+                  label: name,
+                  applied: this.applied.has(name),
+                  color: name === "bug" ? "#d73a4a" : undefined,
+                  onClick: (cx) => flip(name, cx),
+                }),
+              ),
+              toggleChip(t, {
+                id: "label-ci",
+                label: "ci",
+                applied: false,
+                pending: true,
+                color: "#0075ca",
+                caption: "Applying…",
+              }),
+              toggleChip(t, {
+                id: "label-locked",
+                label: "locked",
+                applied: false,
+                color: undefined,
+              }),
+              labelChip(t, {
+                id: "label-tag",
+                label: "release",
+                icon: BUNDLED.tag,
+                color: undefined,
+              }),
+            ]),
+          )
+          .child(
+            chipRow([
+              togglePill(t, {
+                id: "pill",
+                label: "CI",
+                icon: HERDR_ICONS.gitBranch,
+                lit: this.shown,
+                tooltip: "CI passing",
+                onClick: (cx) => {
+                  this.shown = !this.shown;
+                  cx.notify();
+                },
+              }),
+              togglePill(t, {
+                id: "pill-inert",
+                label: "CI",
+                icon: HERDR_ICONS.gitBranch,
+                lit: false,
+              }),
+            ]),
+          ),
+      ),
+    );
   }
 
   // The floating overlay's half: a fixed-width frame, the top bar reaching over Herdr's frame

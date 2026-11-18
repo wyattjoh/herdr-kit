@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { BUTTON_STYLE, DRAG_ROOM, fitLabels, toolsWidth, toolWidth, type Tool } from "./toolbar";
+import {
+  BUTTON_STYLE,
+  DRAG_ROOM,
+  fitLabels,
+  LIT_STYLE,
+  toolsWidth,
+  toolWidth,
+  type Tool,
+} from "./toolbar";
 
 const tools: Tool<"follow" | "pin" | "open">[] = [
   { id: "follow", label: "Follow agent", labelled: false },
@@ -17,6 +25,9 @@ describe("button style", () => {
       textSize: 12,
       iconSize: 14,
     });
+  });
+  test("a lit toggle takes the selected fill and the foreground", () => {
+    expect(LIT_STYLE).toEqual({ background: "selected", text: "foreground" });
   });
   test("estimates an icon-only and a labelled width", () => {
     expect(toolWidth(tools[1]!)).toBe(30);

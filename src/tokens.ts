@@ -147,6 +147,10 @@ export const CHIP = {
   gap: 3,
   radius: 3,
   iconSize: 12,
+  /**
+   * A toggle chip's color dot, as the CI panel's label chips draw it.
+   */
+  dotSize: 8,
   textSize: TEXT.caption,
   /**
    * The alpha suffix a tinted chip's background adds to its color (`#rrggbb1f`).

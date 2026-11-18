@@ -1,6 +1,6 @@
 # @wyattjoh/herdr-ui
 
-The Tasks Herdr panel's visual system as reusable, domain-neutral pieces for [Herdr](https://herdr.dev) mods: theme tokens and tones, the panel button and toolbar fitting, the frame and top bar, breadcrumbs and the title row, listing cards with collapsible groups, chips, tabs, the menu surface, scroll regions, empty/error/loading blocks, and icons.
+The Tasks Herdr panel's visual system as reusable, domain-neutral pieces for [Herdr](https://herdr.dev) mods: theme tokens and tones, the panel button and toolbar fitting, the frame and top bar, breadcrumbs and the title row, listing cards with collapsible groups and static rows, label, toggle and count chips, the tab-row toggle pill, tabs, the menu surface, scroll regions, empty/error/loading blocks, and icons.
 
 ## Install
 
@@ -39,7 +39,7 @@ import { panelIcons } from "@wyattjoh/herdr-ui";
 const ICONS = panelIcons("my-panel"); // ICONS.openInBrowser === "mods/my-panel/globe.svg"
 ```
 
-`HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. Icon licenses are in [NOTICE.md](NOTICE.md).
+`panelIcons` maps the Tasks panel's control roles; `bundledIconPaths("my-panel")` gives every bundled icon by name, including `tag` and `refresh`. `HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. Icon licenses are in [NOTICE.md](NOTICE.md).
 
 ## Example
 
