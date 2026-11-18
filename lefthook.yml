@@ -1,0 +1,12 @@
+# Linked worktrees share one stash; 2.2.2 fixes cross-worktree stash races.
+min_version: 2.2.2
+
+pre-commit:
+  parallel: true
+  commands:
+    oxfmt:
+      glob: "*.{ts,json,md,yml}"
+      run: node_modules/.bin/oxfmt --check {staged_files}
+    oxlint:
+      glob: "*.ts"
+      run: node_modules/.bin/oxlint --deny-warnings {staged_files}

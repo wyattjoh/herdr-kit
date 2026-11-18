@@ -1,3 +1,95 @@
-# herdr-ui
+# @wyattjoh/herdr-ui
 
-Shared Herdr mod UI components, extracted from the Tasks panel.
+The Tasks Herdr panel's visual system as reusable, domain-neutral pieces for [Herdr](https://herdr.dev) mods: theme tokens and tones, the panel button and toolbar fitting, the frame and top bar, breadcrumbs and the title row, listing cards with collapsible groups, chips, tabs, the menu surface, scroll regions, empty/error/loading blocks, and icons.
+
+## Install
+
+```sh
+bun add @wyattjoh/herdr-ui
+```
+
+The package ships TypeScript sources and has no runtime dependencies. Its element functions import `gpui-kit`, `gpui-base` and `herdr`, which Herdr provides at runtime, so bundle the mod with Bun and keep all three external:
+
+```sh
+bun build src/main.ts --outfile <stage>/mods/<mod>/main.js --format esm --target bun \
+  --external gpui-kit --external gpui-base --external herdr
+```
+
+Typecheck the mod against the declarations Herdr writes into its home (`~/.config/herdr-app/gpui-kit.d.ts` and `herdr.d.ts`), as the consumers already do.
+
+## Entry points
+
+| Import                      | Holds                                                                                                   | Imports gpui-kit or herdr                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `@wyattjoh/herdr-ui`        | everything below plus the element functions                                                             | yes, for mod bundles                           |
+| `@wyattjoh/herdr-ui/pure`   | tokens, tones, color helpers, button style and label fitting, menu metrics, icon paths, `RecordScrolls` | no: safe in tests and a Bun-side `tsc`         |
+| `@wyattjoh/herdr-ui/assets` | `copyIcons`, for build scripts                                                                          | no, uses `node:fs`; never import it from a mod |
+
+## Icons
+
+Herdr resolves `svg()` paths against its home, so a bundled icon lives at `mods/<mod folder>/<file>`. Copy the icons into the staged folder from the build script, and build paths from the same folder name:
+
+```ts
+// scripts/build.ts
+import { copyIcons } from "@wyattjoh/herdr-ui/assets";
+await copyIcons(join(stage, "mods", "my-panel"));
+
+// src/main.ts
+import { panelIcons } from "@wyattjoh/herdr-ui";
+const ICONS = panelIcons("my-panel"); // ICONS.openInBrowser === "mods/my-panel/globe.svg"
+```
+
+`HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. Icon licenses are in [NOTICE.md](NOTICE.md).
+
+## Example
+
+```ts
+import { View } from "gpui-kit";
+import { theme } from "herdr";
+import {
+  button,
+  card,
+  cardHeader,
+  cardSection,
+  groupBlock,
+  listRow,
+  panelFrame,
+  panelIcons,
+  toneMap,
+  type Theme,
+} from "@wyattjoh/herdr-ui";
+
+const ICONS = panelIcons("my-panel");
+const tone = toneMap({ running: "active", passed: "success", failed: "danger" });
+
+export default class Panel extends View {
+  render() {
+    const t = theme() as Theme;
+    return panelFrame(t, "my-panel", undefined).child(
+      cardSection(
+        cardHeader(t, "runs-header", "Runs"),
+        card(t, "runs").child(
+          groupBlock(t, "runs", {
+            id: "runs-passed",
+            label: "Passed",
+            tone: tone("passed"),
+            count: 1,
+            rows: [listRow(t, { id: "run-1", label: "#1", title: "Build", onClick: () => {} })],
+            rowHeight: 34,
+            open: true,
+            first: true,
+            last: true,
+            toggle: () => {},
+          }),
+        ),
+      ),
+    );
+  }
+}
+```
+
+[examples/gallery/main.ts](examples/gallery/main.ts) uses every piece once.
+
+## Development
+
+`bun run check` is the gate: `format:check`, `lint`, `typecheck` (Bun side, then native against an installed Herdr home), `test`, `pack:check` and `mod:check`. See [AGENTS.md](AGENTS.md).

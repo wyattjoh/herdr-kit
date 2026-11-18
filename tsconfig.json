@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["bun"]
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "examples/**/*.ts"],
+  "exclude": ["src/ui/**", "src/index.ts", "src/test/**", "examples/**"]
+}

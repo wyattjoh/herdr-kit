@@ -1,4 +1,5 @@
-.scratch/
 node_modules/
-dist/
+.scratch/
 .claude/worktrees/
+.herdr-home
+*.tgz
