@@ -1,11 +1,12 @@
 // A gallery of every @wyattjoh/herdr-ui piece, built the way a consumer builds a mod.
 // `bun run mod:check` packs the package, installs the tarball into a scratch consumer, bundles
 // this file there and loads it once with `herdr-app check` in an isolated Herdr home.
-import { View, type Context, type Element } from "gpui-kit";
-import { v_flex } from "gpui-base";
+import { View, type AsyncContext, type Context, type Element } from "gpui-kit";
+import { InputState, v_flex } from "gpui-base";
 import { theme } from "herdr";
 import {
   brand,
+  BRAND,
   button,
   card,
   cardHeader,
@@ -22,10 +23,12 @@ import {
   fitLabels,
   groupBlock,
   HERDR_ICONS,
+  floatScrollRegion,
   labelChip,
   letThrough,
   listRow,
   loadingState,
+  menuInput,
   menuPanel,
   MENU,
   paneScrollRegion,
@@ -37,6 +40,7 @@ import {
   progressBar,
   rowNote,
   statusMark,
+  stopPress,
   tabBar,
   titleIcon,
   titleRow,
@@ -61,6 +65,11 @@ export default class Gallery extends View {
   private open = new Set<string>(["passed"]);
   private picker = false;
   private document = false;
+  private search: InputState | undefined;
+
+  init(_props: unknown, _cx: AsyncContext): void {
+    this.search = InputState.new({ placeholder: "Search" });
+  }
 
   private toggle(id: string, cx: Context): void {
     if (!this.open.delete(id)) this.open.add(id);
@@ -266,6 +275,78 @@ export default class Gallery extends View {
         }),
       )
       .child(loadingState(t))
-      .child(menuPanel(t, MENU.width).child(rowNote(t, "Menu surface")));
+      .child(
+        menuPanel(t, MENU.width)
+          .when(this.search !== undefined, (el) =>
+            el.child(menuInput(t, this.search!, "GalleryMenu")),
+          )
+          .child(rowNote(t, "Menu surface")),
+      )
+      .child(this.overlay(t));
+  }
+
+  // The floating overlay's half: a fixed-width frame, the top bar reaching over Herdr's frame
+  // strip, a one-line tool row with fitted labels, inert and active buttons, and a capped viewport.
+  private overlay(t: Theme): Element {
+    const width = 320;
+    const tools = fitLabels(
+      [
+        { id: "follow", label: "Follow agent", labelled: false },
+        { id: "pin", label: "Pinned", labelled: false },
+      ],
+      width - PANEL.padding * 2 - BRAND.width,
+      [["follow"]],
+    );
+    return panelFrame(t, "gallery-float", width)
+      .child(
+        topBar(t, {
+          floating: true,
+          id: "gallery-float-bar",
+          content: toolRow({
+            fixed: true,
+            id: "gallery-float-tools",
+            brand: brand(t, {
+              icon: ICONS.openInBrowser,
+              name: "Float",
+              id: "gallery-float-brand",
+            }),
+            leading: [
+              button(t, {
+                id: "float-follow",
+                label: tools[0]!.label,
+                icon: ICONS.follow,
+                labelled: tools[0]!.labelled,
+                onClick: () => {},
+              }),
+            ],
+            trailing: [
+              button(t, {
+                id: "float-pinned",
+                label: tools[1]!.label,
+                icon: ICONS.pinned,
+                labelled: tools[1]!.labelled,
+                active: true,
+                onClick: () => {},
+              }),
+              button(t, { id: "float-inert", label: "Dock", icon: ICONS.dock, labelled: false }),
+            ],
+          }),
+        }),
+      )
+      .child(
+        panelBody({
+          id: "gallery-float-body",
+          scrollCap: 120,
+          hold: stopPress,
+          content: floatScrollRegion(
+            "gallery-float-scroll",
+            120,
+            cardSection(
+              cardHeader(t, "float-header", "Overlay"),
+              card(t, "float-card").child(cardNote(t, "Capped and scrolling")),
+            ),
+          ),
+        }),
+      );
   }
 }
