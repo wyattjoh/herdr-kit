@@ -1,101 +1,27 @@
-# @wyattjoh/herdr-ui
+# herdr-kit
 
-The Tasks Herdr panel's visual system as reusable, domain-neutral pieces for [Herdr](https://herdr.dev) mods: theme tokens and tones, the panel button and toolbar fitting, the frame and top bar, breadcrumbs and the title row, listing cards with collapsible groups and static rows, label, toggle and count chips, the tab-row toggle pill, tabs, the menu surface, scroll regions, empty/error/loading blocks, and icons.
+A Bun workspace for shared tools used by Herdr mod projects.
 
-## Install
+## Packages
 
-```sh
-bun add @wyattjoh/herdr-ui
-```
-
-The package ships TypeScript sources and has no runtime dependencies. Its element functions import `gpui-kit`, `gpui-base` and `herdr`, which Herdr provides at runtime, so bundle the mod with Bun and keep all three external:
-
-```sh
-bun build src/main.ts --outfile <stage>/mods/<mod>/main.js --format esm --target bun \
-  --external gpui-kit --external gpui-base --external herdr
-```
-
-Typecheck the mod against the declarations Herdr writes into its home (`~/.config/herdr-app/gpui-kit.d.ts` and `herdr.d.ts`), as the consumers already do.
-
-## Entry points
-
-| Import                      | Holds                                                                                                   | Imports gpui-kit or herdr                      |
-| --------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `@wyattjoh/herdr-ui`        | everything below plus the element functions                                                             | yes, for mod bundles                           |
-| `@wyattjoh/herdr-ui/pure`   | tokens, tones, color helpers, button style and label fitting, menu metrics, icon paths, `RecordScrolls` | no: safe in tests and a Bun-side `tsc`         |
-| `@wyattjoh/herdr-ui/assets` | `copyIcons` and `copyNotices`, for build scripts                                                        | no, uses `node:fs`; never import it from a mod |
-
-## Icons
-
-Herdr resolves `svg()` paths against its home, so a bundled icon lives at `mods/<mod folder>/<file>`. Copy the icons into the staged folder from the build script, and build paths from the same folder name:
-
-```ts
-// scripts/build.ts
-import { copyIcons, copyNotices } from "@wyattjoh/herdr-ui/assets";
-const modDir = join(stage, "mods", "my-panel");
-await copyIcons(modDir);
-await copyNotices(modDir);
-
-// src/main.ts
-import { panelIcons } from "@wyattjoh/herdr-ui";
-const ICONS = panelIcons("my-panel"); // ICONS.openInBrowser === "mods/my-panel/globe.svg"
-```
-
-`panelIcons` maps the Tasks panel's control roles; `bundledIconPaths("my-panel")` gives every bundled icon by name, including `tag` and `refresh`. `HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. `copyNotices` stages `LICENSE`, `NOTICE.md` and all `licenses/*.txt` files beside the mod while preserving the notice's relative links.
-
-## Consumer options
-
-`brand` accepts an optional `icon`; omit it for a name-only brand with no icon element or icon gap. `crumbPicker` uses each option's `key` for row ids, selection and `pick`; if omitted, it falls back to `name`. Its choice `icon` and `color`, and the picker's `chosen` value, may also be omitted (no icon, muted icon color, and the "any" choice). `labelChip` and `toggleChip` accept an optional `color`; omitting it uses the muted icon color or draws no dot. `panelFrame`'s `floatWidth` and `panelBody`'s `scrollCap` may be omitted for a pane. `topBar`'s `floating` and `toolRow`'s `fixed` default to `false`. `fitLabels` retains its required positional width argument; for a wrapping pane, pass its tools directly instead of calling it. Explicit `undefined` remains equivalent to omission for optional option-bag fields. `titleRow` accepts `trailingId` to preserve an existing slot identity such as `page-title-copy`. `panelBody` accepts a separate `contentId` and an optional `measure({ width, height })` callback on the outer body. `button` accepts `spin` in milliseconds and an opt-in `truncateLabel` for a constrained, ellipsized label. `toneMap` includes the `accent` tone for the host theme's accent role. `stateBlock` accepts an optional root `id`; `errorState` accepts a tone and defaults to `danger`.
-
-## Example
-
-```ts
-import { View } from "gpui-kit";
-import { theme } from "herdr";
-import {
-  button,
-  card,
-  cardHeader,
-  cardSection,
-  groupBlock,
-  listRow,
-  panelFrame,
-  panelIcons,
-  toneMap,
-  type Theme,
-} from "@wyattjoh/herdr-ui";
-
-const ICONS = panelIcons("my-panel");
-const tone = toneMap({ running: "active", passed: "success", failed: "danger" });
-
-export default class Panel extends View {
-  render() {
-    const t = theme() as Theme;
-    return panelFrame(t, "my-panel").child(
-      cardSection(
-        cardHeader(t, "runs-header", "Runs"),
-        card(t, "runs").child(
-          groupBlock(t, "runs", {
-            id: "runs-passed",
-            label: "Passed",
-            tone: tone("passed"),
-            count: 1,
-            rows: [listRow(t, { id: "run-1", label: "#1", title: "Build", onClick: () => {} })],
-            rowHeight: 34,
-            open: true,
-            first: true,
-            last: true,
-            toggle: () => {},
-          }),
-        ),
-      ),
-    );
-  }
-}
-```
-
-[examples/gallery/main.ts](examples/gallery/main.ts) uses every piece once.
+- [`@wyattjoh/herdr-ui`](packages/ui/README.md) — domain-neutral visual components, theme tokens, icon assets, and pure helpers for Herdr mods. Its package name, version line, exports, published files, and runtime behavior remain unchanged.
+- [`@wyattjoh/herdr-dev`](packages/dev/README.md) — development-only tooling: the serialized, load-aware `herdr-app check` runner, its content-hash cache, and shared renderer test doubles. It is not a mod runtime dependency.
+- `packages/runtime` is planned, but does not exist yet.
 
 ## Development
 
-`bun run check` is the gate: `format:check`, `lint`, `typecheck` (Bun side, then native against an installed Herdr home), `test`, `pack:check` and `mod:check`. See [AGENTS.md](AGENTS.md).
+Requires Bun. Install dependencies once from the repository root:
+
+```sh
+bun install
+bun run check:fast
+bun run check:native
+```
+
+`bun run check:fast` runs formatting, lint, TypeScript, tests, and package checks. `bun run check:native` runs Herdr-dependent checks; it needs an installed Herdr home (by default `~/.config/herdr-app`). Native checks run through `@wyattjoh/herdr-dev` so repos and worktrees on this machine share serialization and caching. `bun run check` runs both gates.
+
+Package-specific commands are available with `bun run --filter @wyattjoh/herdr-ui <script>` and `bun run --filter @wyattjoh/herdr-dev <script>`.
+
+## Releases
+
+Release-please manages each package independently in manifest mode. The package directories, changelogs, and component tags (`ui-vX.Y.Z`, `dev-vX.Y.Z`) are separate; see [release-please-config.json](release-please-config.json).

@@ -1,0 +1,2 @@
+[test]
+preload = ["@wyattjoh/herdr-dev/test/renderer"]

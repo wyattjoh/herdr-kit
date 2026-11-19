@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { byId, nodeOf, texts, walk } from "../test/renderer";
+import { byId, nodeOf, texts, walk } from "@wyattjoh/herdr-dev/test/renderer";
 import { THEME as t } from "../test/theme";
 import { button, togglePill } from "./controls";
 import { crumb, crumbBand, crumbPicker, titleRow } from "./crumbs";
