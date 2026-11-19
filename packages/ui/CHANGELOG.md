@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0](https://github.com/wyattjoh/herdr-kit/compare/ui-v0.5.1...ui-v0.6.0) (2026-11-19)
+
+
+### Features
+
+* **ui:** add compact card state ([70758a9](https://github.com/wyattjoh/herdr-kit/commit/70758a96f092802c33182cbeed889b38748aadd7))
+* **ui:** add compact menu rows ([c860365](https://github.com/wyattjoh/herdr-kit/commit/c860365c5fffa7758f6c723c7135d5d7875fd5ed))
+* **ui:** add metadata grid ([2c1471a](https://github.com/wyattjoh/herdr-kit/commit/2c1471acd9270b88965948d2d39f05edd74b4acc))
+* **ui:** add skeleton rows ([0d516e7](https://github.com/wyattjoh/herdr-kit/commit/0d516e7f1dfba4c3badc2a4002327097825d9e0c))
+* **ui:** add tone notice line ([e854adf](https://github.com/wyattjoh/herdr-kit/commit/e854adfe1fb146a03d302af83dd14c534da51a80))
+
 ## [0.5.1](https://github.com/wyattjoh/herdr-kit/compare/ui-v0.5.0...ui-v0.5.1) (2026-11-19)
 
 
