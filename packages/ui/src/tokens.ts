@@ -275,7 +275,14 @@ export const DOCUMENT = {
  * An empty, error or loading message block.
  */
 export const STATE = {
+  /**
+   * Between lines in a standard state block.
+   */
   gap: 4,
+  /**
+   * Between lines in a compact in-card state block.
+   */
+  compactGap: 2,
 } as const;
 
 /**
