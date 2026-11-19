@@ -44,10 +44,10 @@ describe("button", () => {
       gap: 5,
       rounded: 6,
       text_size: 12,
-      bg: "#chrome",
-      text_color: "#muted",
+      bg: t.chrome,
+      text_color: t.muted,
     });
-    expect(node.hoverStyles).toEqual({ bg: "#hover" });
+    expect(node.hoverStyles).toEqual({ bg: t.hover });
     expect(texts(node)).toEqual(["Follow"]);
     expect(node.children).toContain("Follow");
     expect(node.calls).toContain("flex_none");
@@ -56,7 +56,7 @@ describe("button", () => {
   });
   test("an icon-only button tooltips its label; an inert one dims", () => {
     const node = nodeOf(button(t, { id: "pin", label: "Pin", icon: "p.svg", labelled: false }));
-    expect(node.styles).toMatchObject({ tooltip: "Pin", text_color: "#dim" });
+    expect(node.styles).toMatchObject({ tooltip: "Pin", text_color: t.dim });
     expect(node.click).toBeUndefined();
     expect(texts(node)).toEqual([]);
   });
@@ -65,7 +65,7 @@ describe("button", () => {
       button(t, { id: "pin", label: "Pinned", icon: "p.svg", active: true, onClick: () => {} }),
     );
     const glyph = walk(node).find((n) => n.kind === "svg")!;
-    expect(glyph.styles.text_color).toBe("#accent");
+    expect(glyph.styles.text_color).toBe(t.accent);
     expect(glyph.styles.spin).toBeUndefined();
   });
   test("a button can spin its icon and opt into a shrinking ellipsized label", () => {
@@ -95,7 +95,7 @@ describe("chrome", () => {
     expect(node.styles).toMatchObject({ id: "brand", h: 26, gap: 6 });
     expect(node.calls).toEqual(["id", "h", "flex_none", "gap", "items_center"]);
     expect(mark.styles).toMatchObject({ asset: "git.svg", size: 20, flex_none: true });
-    expect(mark.styles.text_color).toBe("#accent");
+    expect(mark.styles.text_color).toBe(t.accent);
     expect(node.children.map((child) => (typeof child === "string" ? child : child.kind))).toEqual([
       "svg",
       "div",
@@ -122,7 +122,7 @@ describe("chrome", () => {
     expect(visibleTree(omitted)).toEqual(visibleTree(explicitUndefined));
     expect(nodeOf(omitted).styles).toMatchObject({
       size_full: true,
-      bg: "#surface",
+      bg: t.surface,
       rounded_t: 9,
     });
     expect(nodeOf(panelFrame(t, "root", 360)).styles).toMatchObject({ w: 360 });
@@ -132,7 +132,7 @@ describe("chrome", () => {
       topBar(t, { floating: true, content: toolRow({ fixed: true, leading: [], trailing: [] }) }),
     );
     expect(bar.styles.pt).toBe(0);
-    expect(walk(bar).some((n) => n.styles.top === -5 && n.styles.bg === "#chrome")).toBe(true);
+    expect(walk(bar).some((n) => n.styles.top === -5 && n.styles.bg === t.chrome)).toBe(true);
   });
   test("omitted top-bar and tool-row options keep their docked, wrapping defaults", () => {
     const content = toolRow({ leading: [], trailing: [] });
@@ -153,7 +153,7 @@ describe("chrome", () => {
     ]);
     expect(texts(band)).toEqual(["Repo", "›", "PRs"]);
     expect(nodeOf(band).styles).toMatchObject({ h: 36, px: 12, border_t: 1, border_b: 1 });
-    expect(byId(band, "b")!.styles.text_color).toBe("#foreground");
+    expect(byId(band, "b")!.styles.text_color).toBe(t.foreground);
   });
   test("a clickable crumb is held in an overlay", () => {
     const node = nodeOf(crumb(t, { id: "x", label: "X", onClick: () => {}, hold: stopPress }));
@@ -271,9 +271,9 @@ describe("chrome", () => {
 describe("listing", () => {
   test("a card is a bordered canvas", () => {
     expect(nodeOf(card(t, "c")).styles).toMatchObject({
-      bg: "#canvas",
+      bg: t.canvas,
       border: 1,
-      border_color: "#input",
+      border_color: t.input,
       rounded: 8,
     });
   });
@@ -300,7 +300,7 @@ describe("listing", () => {
     });
     expect(byId(open, "g-toggle")!.styles).toMatchObject({
       h: 28,
-      bg: "#popover",
+      bg: t.popover,
       border_t: 0,
       rounded_t: 7,
     });
@@ -327,7 +327,7 @@ describe("listing", () => {
   });
   test("a progress bar fills done over total", () => {
     const bar = progressBar(t, { done: 1, total: 4 });
-    expect(walk(bar).some((n) => n.styles.w === 14 && n.styles.bg === "#ansi2")).toBe(true);
+    expect(walk(bar).some((n) => n.styles.w === 14 && n.styles.bg === t.ansi2)).toBe(true);
     expect(texts(progressBar(t, { done: 0, total: 0, empty: "No Tasks" }))).toEqual(["No Tasks"]);
   });
 });
@@ -346,7 +346,7 @@ describe("chips, tabs, states, menus, scroll", () => {
       color: undefined,
     });
     expect(visibleTree(omittedColor)).toEqual(visibleTree(explicitUndefined));
-    expect(nodeOf(omittedColor).styles).toMatchObject({ h: 18, bg: "#raised", tooltip: "bug" });
+    expect(nodeOf(omittedColor).styles).toMatchObject({ h: 18, bg: t.raised, tooltip: "bug" });
   });
   test("the selected tab takes the selected fill; a locked bar is inert", () => {
     const bar = tabBar(t, {
@@ -358,9 +358,9 @@ describe("chips, tabs, states, menus, scroll", () => {
       locked: true,
       onTab: () => {},
     });
-    expect(byId(bar, "tabs-a")!.styles.bg).toBe("#selected");
+    expect(byId(bar, "tabs-a")!.styles.bg).toBe(t.selected);
     expect(byId(bar, "tabs-b")!.click).toBeUndefined();
-    expect(byId(bar, "tabs-b")!.styles.text_color).toBe("#dim");
+    expect(byId(bar, "tabs-b")!.styles.text_color).toBe(t.dim);
   });
   test("a state block says its title, detail and action", () => {
     const block = stateBlock(t, {
@@ -381,10 +381,10 @@ describe("chips, tabs, states, menus, scroll", () => {
     expect(nodeOf(identified).styles.id).toBe("missing-state");
     expect(byId(failure, "error-state")).toBeDefined();
     expect(walk(failure).find((node) => node.children.includes("Failed"))!.styles.text_color).toBe(
-      "#ansi1",
+      t.ansi1,
     );
     expect(walk(warning).find((node) => node.children.includes("Warning"))!.styles.text_color).toBe(
-      "#ansi3",
+      t.ansi3,
     );
   });
   test("a collapsed document is a faded, capped preview", () => {
@@ -429,7 +429,7 @@ describe("static rows and first rows", () => {
   test("a card row keeps its pointer, hover and top rule by default", () => {
     const row = nodeOf(cardRow(t, "r"));
     expect(row.calls).toEqual(expect.arrayContaining(["cursor_pointer", "hover", "border_t"]));
-    expect(row.styles).toMatchObject({ border_t: 1, border_color: "#border" });
+    expect(row.styles).toMatchObject({ border_t: 1, border_color: t.border });
     expect(row.styles.rounded_t).toBeUndefined();
     const list = nodeOf(listRow(t, { id: "l", title: "T", onClick: () => {} }));
     expect(list.calls).toEqual(expect.arrayContaining(["cursor_pointer", "hover", "on_click"]));
@@ -439,7 +439,7 @@ describe("static rows and first rows", () => {
     const row = nodeOf(cardRow(t, "r", t.hover, true));
     expect(row.styles.border_t).toBeUndefined();
     expect(row.styles.rounded_t).toBe(7);
-    expect(row.hoverStyles).toEqual({ bg: "#hover" });
+    expect(row.hoverStyles).toEqual({ bg: t.hover });
     const list = nodeOf(listRow(t, { id: "l", title: "T", first: true, onClick: () => {} }));
     expect(list.styles.border_t).toBeUndefined();
   });
@@ -464,13 +464,13 @@ describe("static rows and first rows", () => {
   test("a status mark takes an optional tooltip on a wrapper, since an svg can't carry one", () => {
     const bare = nodeOf(statusMark(t, "x.svg", "ansi2"));
     expect(bare.kind).toBe("svg");
-    expect(bare.styles).toMatchObject({ asset: "x.svg", size: 14, text_color: "#ansi2" });
+    expect(bare.styles).toMatchObject({ asset: "x.svg", size: 14, text_color: t.ansi2 });
     expect(bare.styles.tooltip).toBeUndefined();
     const tipped = nodeOf(statusMark(t, "x.svg", "ansi2", "running · unavailable"));
     expect(tipped.kind).toBe("h_flex");
     expect(tipped.styles).toMatchObject({ flex_none: true, tooltip: "running · unavailable" });
     const glyph = walk(tipped).find((n) => n.kind === "svg")!;
-    expect(glyph.styles).toMatchObject({ asset: "x.svg", size: 14, text_color: "#ansi2" });
+    expect(glyph.styles).toMatchObject({ asset: "x.svg", size: 14, text_color: t.ansi2 });
     expect(glyph.styles.tooltip).toBeUndefined();
   });
 });
@@ -501,12 +501,12 @@ describe("toggle chip", () => {
       h: 18,
       px: 4,
       rounded: 3,
-      bg: "#raised",
-      text_color: "#foreground",
+      bg: t.raised,
+      text_color: t.foreground,
       tooltip: "Remove bug",
     });
     expect(node.styles.border).toBeUndefined();
-    expect(node.hoverStyles).toEqual({ bg: "#hover" });
+    expect(node.hoverStyles).toEqual({ bg: t.hover });
     expect(walk(chip).some((n) => n.styles.size === 8 && n.styles.bg === "#ff0000")).toBe(true);
     node.click!(undefined, undefined);
     expect(pressed).toBe(1);
@@ -517,12 +517,12 @@ describe("toggle chip", () => {
     );
     expect(enabled.styles).toMatchObject({
       border: 1,
-      border_color: "#border",
-      text_color: "#muted",
+      border_color: t.border,
+      text_color: t.muted,
       tooltip: "bug",
     });
     const inert = toggleChip(t, { id: "c", label: "bug", applied: false, color: undefined });
-    expect(nodeOf(inert).styles.text_color).toBe("#dim");
+    expect(nodeOf(inert).styles.text_color).toBe(t.dim);
     expect(interactive(inert)).toEqual([]);
     expect(walk(inert).some((n) => n.styles.size === 8)).toBe(false);
   });
@@ -558,11 +558,11 @@ describe("toggle pill", () => {
       gap: 5,
       rounded: 6,
       text_size: 12,
-      bg: "#chrome",
-      text_color: "#muted",
+      bg: t.chrome,
+      text_color: t.muted,
       tooltip: "CI passing",
     });
-    expect(nodeOf(unlit).hoverStyles).toEqual({ bg: "#hover" });
+    expect(nodeOf(unlit).hoverStyles).toEqual({ bg: t.hover });
     expect(walk(unlit).find((n) => n.kind === "svg")!.styles).toMatchObject({
       asset: "i.svg",
       size: 14,
@@ -571,11 +571,11 @@ describe("toggle pill", () => {
     nodeOf(unlit).click!(undefined, undefined);
     expect(pressed).toBe(1);
     const lit = nodeOf(togglePill(t, { id: "p", label: "CI", lit: true, onClick: () => {} }));
-    expect(lit.styles).toMatchObject({ bg: "#selected", text_color: "#foreground" });
+    expect(lit.styles).toMatchObject({ bg: t.selected, text_color: t.foreground });
   });
   test("an inert pill dims, with no pointer or hover", () => {
     const pill = togglePill(t, { id: "p", label: "CI", lit: true });
-    expect(nodeOf(pill).styles).toMatchObject({ bg: "#selected", text_color: "#dim" });
+    expect(nodeOf(pill).styles).toMatchObject({ bg: t.selected, text_color: t.dim });
     expect(interactive(pill)).toEqual([]);
   });
 });
