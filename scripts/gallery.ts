@@ -10,6 +10,7 @@ const ROOT = resolve(import.meta.dir, "..");
 const WORK = join(ROOT, ".scratch/gallery");
 const PACKED = join(WORK, "pack");
 const CONSUMER = join(WORK, "consumer");
+const GALLERY = join(CONSUMER, "gallery");
 const STAGE = join(WORK, "stage");
 const MOD = "herdr-ui-gallery";
 const DIR = join(STAGE, "mods", MOD);
@@ -33,12 +34,12 @@ await Bun.write(
   }),
 );
 await $`bun install --no-save`.cwd(CONSUMER).quiet();
-await cp(join(ROOT, "examples/gallery/main.ts"), join(CONSUMER, "main.ts"));
+await cp(join(ROOT, "examples/gallery"), GALLERY, { recursive: true });
 
 await mkdir(DIR, { recursive: true });
 await cp(join(ROOT, "examples/gallery/mod.json"), join(DIR, "mod.json"));
 const built = await Bun.build({
-  entrypoints: [join(CONSUMER, "main.ts")],
+  entrypoints: [join(GALLERY, "main.ts")],
   outdir: DIR,
   naming: "main.js",
   format: "esm",
