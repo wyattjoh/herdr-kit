@@ -94,3 +94,25 @@ export const loadingState = (
   title = "Loading…",
   detail: string | undefined = undefined,
 ): Element => stateBlock(t, detail === undefined ? { title } : { title, detail });
+
+/**
+ * A single-line message in a semantic tone, such as a warning or failure notice.
+ * @param t The theme.
+ * @param tone The line's tone.
+ * @param text The message.
+ * @param tooltip The full message when the visible line may be truncated.
+ * @returns The tone-colored line.
+ */
+export const toneLine = (
+  t: Theme,
+  tone: Tone,
+  text: string,
+  tooltip: string | undefined = undefined,
+): Element =>
+  div()
+    .flex_none()
+    .min_w(0)
+    .text_size(TEXT.label)
+    .text_color(role(t, TONES[tone]))
+    .when(tooltip !== undefined, (line) => line.truncate().tooltip(tooltip!))
+    .child(text);
