@@ -1,10 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   checkFailureOutput,
   classifyCheck,
+  reportCheckResult,
   hashTree,
   isLaunchdJobLive,
   launchdRows,
@@ -26,6 +27,18 @@ describe("shared check runner pure logic", () => {
     expect(checkFailureOutput("WATCHDOG", "partial output")).toBe("");
     expect(classifyCheck("", 0)).toBe("PASS");
     expect(classifyCheck("", 1, true)).toBe("WATCHDOG");
+  });
+
+  test("prints checker diagnostics for real failures only", () => {
+    const log = spyOn(console, "log").mockImplementation(() => {});
+    const error = spyOn(console, "error").mockImplementation(() => {});
+    reportCheckResult("coordinate-toggle", "FAIL", 180_000, "view failed: invalid color");
+    reportCheckResult("coordinate-toggle", "WATCHDOG", 180_000, "partial output");
+    expect(log).toHaveBeenCalledTimes(2);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith("view failed: invalid color");
+    log.mockRestore();
+    error.mockRestore();
   });
 
   test("hashes content and ignores filesystem enumeration order", async () => {
