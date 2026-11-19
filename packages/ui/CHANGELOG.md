@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/wyattjoh/herdr-kit/compare/ui-v0.5.0...ui-v0.5.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **dev:** keep the CLIs when publishing ([3cfbe2e](https://github.com/wyattjoh/herdr-kit/commit/3cfbe2e522355bde6a97f7a36ceb6bcf33f7f4f1))
+
 ## [0.5.0](https://github.com/wyattjoh/herdr-kit/compare/v0.4.1...v0.5.0) (2026-11-19)
 
 
