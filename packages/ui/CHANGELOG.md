@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/wyattjoh/herdr-kit/compare/ui-v0.6.0...ui-v0.7.0) (2026-11-19)
+
+
+### Features
+
+* **ui:** let metadata grid cells set explicit ids and match the Tasks value gap ([437aebd](https://github.com/wyattjoh/herdr-kit/commit/437aebdece2beb8f72fd667934937f7f82c2063f))
+
 ## [0.6.0](https://github.com/wyattjoh/herdr-kit/compare/ui-v0.5.1...ui-v0.6.0) (2026-11-19)
 
 
