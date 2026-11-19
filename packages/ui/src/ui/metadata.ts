@@ -52,6 +52,10 @@ export type MetadataGridOptions = {
    * The properties in display order.
    */
   cells: readonly MetadataGridCell[];
+  /**
+   * Decorates each outer slot after its id and wrapped content are attached.
+   */
+  decorateSlot?: (slot: Element, cell: MetadataGridCell) => Element;
 };
 
 /**
@@ -107,7 +111,12 @@ export function metadataGrid(t: Theme, options: MetadataGridOptions): Element {
           );
         const wrapped = cell.wrap === undefined ? content : cell.wrap(content);
         const slot = v_flex().flex_1().min_w(0);
-        return (cell.slotId === undefined ? slot : slot.id(cell.slotId)).child(wrapped);
+        const populatedSlot = (cell.slotId === undefined ? slot : slot.id(cell.slotId)).child(
+          wrapped,
+        );
+        return options.decorateSlot === undefined
+          ? populatedSlot
+          : options.decorateSlot(populatedSlot, cell);
       }),
     );
 }

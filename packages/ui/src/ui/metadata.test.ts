@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { div } from "gpui-kit";
+import { div, type Element } from "gpui-kit";
 import { byId, nodeOf, texts } from "@wyattjoh/herdr-dev/test/renderer";
 import { METADATA_GRID } from "../tokens";
 import { THEME as t } from "../test/theme";
-import { metadataGrid } from "./metadata";
+import { metadataGrid, type MetadataGridCell } from "./metadata";
 
 describe("metadataGrid", () => {
   test("renders equally shrinking label/value cells with separators", () => {
@@ -54,6 +54,35 @@ describe("metadataGrid", () => {
     expect(content.styles).toMatchObject({ opacity: 0.5, tooltip: "Status is unavailable" });
     expect(byId(grid, "metadata-wrapper")).toBeDefined();
     expect(byId(grid, "status-icon")).toBeDefined();
+  });
+
+  test("decorates each outer slot after attaching its wrapped content", () => {
+    const cell: MetadataGridCell = {
+      id: "status",
+      slotId: "metadata-slot-status",
+      label: "Status",
+      value: "Active",
+      wrap: (element: Element) => div().id("metadata-wrapper").child(element),
+    };
+    let receivedCell: MetadataGridCell | undefined;
+    let slotHadWrappedContent = false;
+
+    const grid = metadataGrid(t, {
+      id: "page-metadata",
+      cells: [cell],
+      decorateSlot: (slot, decoratedCell) => {
+        receivedCell = decoratedCell;
+        slotHadWrappedContent = byId(slot, "metadata-wrapper") !== undefined;
+        expect(byId(slot, "metadata-slot-status")).toBeDefined();
+        return div().id("decorated-slot").child(slot);
+      },
+    });
+
+    expect(receivedCell).toBe(cell);
+    expect(slotHadWrappedContent).toBe(true);
+    expect(byId(grid, "decorated-slot")).toBeDefined();
+    expect(byId(grid, "metadata-slot-status")).toBeDefined();
+    expect(byId(grid, "metadata-wrapper")).toBeDefined();
   });
 
   test("uses explicit cell and slot ids and the value gap", () => {
