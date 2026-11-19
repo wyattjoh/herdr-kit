@@ -2,7 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
-import { classifyCheck, hashTree, isLaunchdJobLive, launchdRows, withCheckLock } from "./runner";
+import {
+  checkFailureOutput,
+  classifyCheck,
+  hashTree,
+  isLaunchdJobLive,
+  launchdRows,
+  withCheckLock,
+} from "./runner";
 
 describe("shared check runner pure logic", () => {
   test("classifies deadlines as retryable infrastructure outcomes", () => {
@@ -13,6 +20,10 @@ describe("shared check runner pure logic", () => {
       "WATCHDOG",
     );
     expect(classifyCheck("invalid manifest", 1)).toBe("FAIL");
+    expect(checkFailureOutput("FAIL", "manifest invalid\\nline 2")).toBe(
+      "manifest invalid\\nline 2",
+    );
+    expect(checkFailureOutput("WATCHDOG", "partial output")).toBe("");
     expect(classifyCheck("", 0)).toBe("PASS");
     expect(classifyCheck("", 1, true)).toBe("WATCHDOG");
   });

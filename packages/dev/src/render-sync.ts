@@ -25,6 +25,12 @@ export async function findFastTimers(root: string): Promise<string[]> {
       // other timer APIs need semantic review; this rule does not claim to prove render safety.
       const pattern = /\bcx\s*\.\s*timer\s*\.\s*every\s*\(\s*(\d+(?:_\d+)*)\s*(?:,|\))/g;
       for (const match of source.matchAll(pattern)) {
+        const lineStart = source.lastIndexOf("\n", match.index) + 1;
+        const previousLineEnd = lineStart - 1;
+        const previousLineStart = source.lastIndexOf("\n", previousLineEnd - 1) + 1;
+        const previousLine = source.slice(previousLineStart, previousLineEnd).trim();
+        if (/^\/\/\s*herdr-render-sync-allow:\s*\S/.test(previousLine)) continue;
+
         const milliseconds = Number(match[1].replaceAll("_", ""));
         if (milliseconds < 5000) {
           const line = source.slice(0, match.index).split("\n").length;
