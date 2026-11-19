@@ -3,7 +3,7 @@
 // .scratch/pack-listing.txt.
 import { mkdir } from "node:fs/promises";
 
-type PackFile = { path: string; size: number };
+import { parsePackOutput } from "./pack-output";
 const result = Bun.spawnSync(["npm", "pack", "--dry-run", "--json", "--ignore-scripts"], {
   stdout: "pipe",
   stderr: "pipe",
@@ -12,7 +12,7 @@ if (result.exitCode !== 0) {
   console.error(result.stderr.toString());
   process.exit(result.exitCode ?? 1);
 }
-const [pack] = JSON.parse(result.stdout.toString()) as [{ files: PackFile[]; size: number }];
+const pack = parsePackOutput(result.stdout.toString());
 const paths = pack.files.map((entry) => entry.path).sort();
 
 const ALLOWED = [
