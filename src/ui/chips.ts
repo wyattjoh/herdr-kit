@@ -31,9 +31,9 @@ export type LabelChipOptions = {
    */
   icon: string;
   /**
-   * The icon's color (data, such as a label's color), else `muted`.
+   * The icon's color (data, such as a label's color); when omitted, `muted`.
    */
-  color: string | undefined;
+  color?: string;
   /**
    * The tooltip and accessibility label; default the label.
    */
@@ -85,9 +85,9 @@ export type ToggleChipOptions = {
    */
   pending?: boolean;
   /**
-   * The color dot's color (data, such as a forge label's `#rrggbb`); no dot when undefined.
+   * The color dot's color (data, such as a forge label's `#rrggbb`); no dot when omitted.
    */
-  color: string | undefined;
+  color?: string;
   /**
    * The tooltip and accessibility label; default the label.
    */

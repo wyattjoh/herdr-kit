@@ -22,11 +22,11 @@ export const fill = (el: Element, scrollCap: number | undefined): Element =>
  * The panel's root column.
  * @param t The theme.
  * @param id The root's id.
- * @param floatWidth The overlay's width, or undefined in a pane, where the root fills its block
+ * @param floatWidth The overlay's width; omit it in a pane, where the root fills its block
  *   on `surface` with rounded top corners.
  * @returns The root; add the top bar, bands and body as children.
  */
-export const panelFrame = (t: Theme, id: string, floatWidth: number | undefined): Element =>
+export const panelFrame = (t: Theme, id: string, floatWidth?: number): Element =>
   v_flex()
     .id(id)
     .when(floatWidth === undefined, (el) =>
@@ -39,15 +39,15 @@ export const panelFrame = (t: Theme, id: string, floatWidth: number | undefined)
  * strip Herdr's frame leaves above the content and rounds to match; it's absolute, so the
  * frame's size, which Herdr measures from the layout, ignores it.
  * @param t The theme.
- * @param options `floating` in an overlay; `content` is the tool row; `id` defaults to
- *   `tool-bar`.
+ * @param options `floating` enables the overlay bar and defaults to false; `content` is the tool
+ *   row; `id` defaults to `tool-bar`.
  * @returns The bar.
  */
 export function topBar(
   t: Theme,
-  options: { floating: boolean; content: Element; id?: string },
+  options: { floating?: boolean; content: Element; id?: string },
 ): Element {
-  const { floating } = options;
+  const { floating = false } = options;
   return v_flex()
     .id(options.id ?? "tool-bar")
     .flex_none()
@@ -94,22 +94,23 @@ export const brand = (t: Theme, options: { icon?: string; name: string; id?: str
 
 /**
  * The tool row inside the top bar.
- * @param options `fixed` keeps one line (the overlay: fit labels first with `fitLabels`), with
- *   the brand and `leading` tools at the start and `trailing` ones at the end, the free space
- *   between them dragging the overlay. Otherwise (a pane) the row wraps and every tool sits at
- *   the end. `id` defaults to `bar`.
+ * @param options `fixed` keeps one line (the overlay: fit labels first with `fitLabels`), and
+ *   defaults to false. The brand and `leading` tools are at the start and `trailing` ones at the
+ *   end, with the free space between them dragging the overlay. Otherwise (a pane) the row wraps
+ *   and every tool sits at the end. `id` defaults to `bar`.
  * @returns The row.
  */
 export function toolRow(options: {
-  fixed: boolean;
+  fixed?: boolean;
   brand?: Element;
   leading: readonly Element[];
   trailing: readonly Element[];
   id?: string;
 }): Element {
   const id = options.id ?? "bar";
+  const fixed = options.fixed ?? false;
   const spacer = () => div().flex_1().min_w_0().h(BUTTON_STYLE.height);
-  if (options.fixed)
+  if (fixed)
     return h_flex()
       .id(id)
       .gap(TOOL_GAP)
@@ -137,12 +138,12 @@ export function toolRow(options: {
 /**
  * The padded body under the bands, holding the screen's content column.
  * @param options The body's id (default `panel-body`), the content id (default `<id>-content`),
- *   the overlay's height cap (undefined in a pane), `hold` for the content column, the content,
- *   and an optional size measurement callback attached to the outer body.
+ *   the optional overlay height cap (omit it in a pane), `hold` for the content column, the
+ *   content, and an optional size measurement callback attached to the outer body.
  * @returns The body.
  */
 export function panelBody(options: {
-  scrollCap: number | undefined;
+  scrollCap?: number;
   hold: <E extends Element>(el: E) => E;
   content: Element;
   id?: string;
