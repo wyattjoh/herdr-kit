@@ -18,7 +18,7 @@ test("copyIcons writes every icon, or the ones named, into a mod folder", async 
   }
 });
 
-test("copyNotices stages NOTICE.md and all licence texts with their relative paths", async () => {
+test("copyNotices stages LICENSE, NOTICE.md and all licence texts with their relative paths", async () => {
   const root = await mkdtemp(join(tmpdir(), "herdr-ui-notices-"));
   try {
     const destination = join(root, "mod");
@@ -26,7 +26,7 @@ test("copyNotices stages NOTICE.md and all licence texts with their relative pat
     const licenses = (await readdir(join(source, "licenses")))
       .filter((name) => name.endsWith(".txt"))
       .sort();
-    const files = ["NOTICE.md", ...licenses.map((name) => join("licenses", name))];
+    const files = ["LICENSE", "NOTICE.md", ...licenses.map((name) => join("licenses", name))];
     expect(await copyNotices(destination)).toEqual(files.map((file) => join(destination, file)));
     for (const file of files) {
       expect(await readFile(join(destination, file), "utf8")).toBe(
