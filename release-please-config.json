@@ -13,8 +13,7 @@
       "package-name": "@wyattjoh/herdr-dev",
       "release-type": "node",
       "component": "dev",
-      "bump-minor-pre-major": true,
-      "release-as": "0.1.0"
+      "bump-minor-pre-major": true
     }
   }
 }
