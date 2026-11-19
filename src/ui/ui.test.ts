@@ -22,6 +22,15 @@ import { menuPanel } from "./menu";
 import { paneScrollRegion } from "./scroll";
 import { stopPress } from "./theme";
 
+const visibleTree = (element: unknown) =>
+  walk(element).map(({ kind, children, styles, calls, hoverStyles }) => ({
+    kind,
+    children: children.map((child) => (typeof child === "string" ? child : child.kind)),
+    styles,
+    calls,
+    hoverStyles,
+  }));
+
 describe("button", () => {
   test("draws Herdr's panel button and runs its handler", () => {
     let pressed = 0;
@@ -108,7 +117,10 @@ describe("chrome", () => {
     expect(texts(node)).toEqual(["Git"]);
   });
   test("a pane frame fills its block; a float takes its width", () => {
-    expect(nodeOf(panelFrame(t, "root", undefined)).styles).toMatchObject({
+    const omitted = panelFrame(t, "root");
+    const explicitUndefined = panelFrame(t, "root", undefined);
+    expect(visibleTree(omitted)).toEqual(visibleTree(explicitUndefined));
+    expect(nodeOf(omitted).styles).toMatchObject({
       size_full: true,
       bg: "#surface",
       rounded_t: 9,
@@ -122,6 +134,18 @@ describe("chrome", () => {
     expect(bar.styles.pt).toBe(0);
     expect(walk(bar).some((n) => n.styles.top === -5 && n.styles.bg === "#chrome")).toBe(true);
   });
+  test("omitted top-bar and tool-row options keep their docked, wrapping defaults", () => {
+    const content = toolRow({ leading: [], trailing: [] });
+    expect(visibleTree(topBar(t, { content }))).toEqual(
+      visibleTree(topBar(t, { floating: undefined, content })),
+    );
+    expect(visibleTree(toolRow({ leading: [], trailing: [] }))).toEqual(
+      visibleTree(toolRow({ fixed: undefined, leading: [], trailing: [] })),
+    );
+    expect(visibleTree(toolRow({ leading: [], trailing: [] }))).toEqual(
+      visibleTree(toolRow({ fixed: false, leading: [], trailing: [] })),
+    );
+  });
   test("the crumb band separates its crumbs", () => {
     const band = crumbBand(t, [
       crumb(t, { id: "a", label: "Repo" }),
@@ -134,6 +158,36 @@ describe("chrome", () => {
   test("a clickable crumb is held in an overlay", () => {
     const node = nodeOf(crumb(t, { id: "x", label: "X", onClick: () => {}, hold: stopPress }));
     expect(node.calls).toContain("on_mouse_down");
+  });
+  test("omitted crumb picker fields match their explicit undefined forms", () => {
+    const required = {
+      id: "repo",
+      any: "All repos",
+      open: false,
+      current: false,
+      browse: () => {},
+      pick: () => {},
+      setOpen: () => {},
+    };
+    const omitted = crumbPicker(t, { ...required, choices: [{ name: "herdr-ui" }] });
+    const explicitUndefined = crumbPicker(t, {
+      ...required,
+      choices: [{ name: "herdr-ui", icon: undefined, color: undefined }],
+      chosen: undefined,
+    });
+    expect(texts(omitted)).toEqual(texts(explicitUndefined));
+    expect(walk(omitted).map((node) => node.styles.id)).toEqual(
+      walk(explicitUndefined).map((node) => node.styles.id),
+    );
+    expect(
+      walk(omitted)
+        .filter((node) => node.kind === "svg")
+        .map((node) => node.styles),
+    ).toEqual(
+      walk(explicitUndefined)
+        .filter((node) => node.kind === "svg")
+        .map((node) => node.styles),
+    );
   });
   test("the crumb picker lists any and every choice, checking the chosen", () => {
     const picked: (string | undefined)[] = [];
@@ -202,11 +256,14 @@ describe("chrome", () => {
     expect(sizes).toEqual([{ width: 640, height: 480 }]);
   });
   test("panelBody keeps the derived content id by default", () => {
-    const body = panelBody({
+    const content = button(t, { id: "body-content", label: "Body" });
+    const body = panelBody({ hold: (element) => element, content });
+    const explicitUndefined = panelBody({
       scrollCap: undefined,
       hold: (element) => element,
-      content: button(t, { id: "body-content", label: "Body" }),
+      content,
     });
+    expect(visibleTree(body)).toEqual(visibleTree(explicitUndefined));
     expect(byId(body, "panel-body-content")).toBeDefined();
   });
 });
@@ -281,9 +338,15 @@ describe("chips, tabs, states, menus, scroll", () => {
       nodeOf(countChip({ id: "b", count: 2, icon: "x.svg", color: "#ff0000", tooltip: "2" })).styles
         .bg,
     ).toBe("#ff00001f");
-    expect(
-      nodeOf(labelChip(t, { id: "l", label: "bug", icon: "tag.svg", color: undefined })).styles,
-    ).toMatchObject({ h: 18, bg: "#raised", tooltip: "bug" });
+    const omittedColor = labelChip(t, { id: "l", label: "bug", icon: "tag.svg" });
+    const explicitUndefined = labelChip(t, {
+      id: "l",
+      label: "bug",
+      icon: "tag.svg",
+      color: undefined,
+    });
+    expect(visibleTree(omittedColor)).toEqual(visibleTree(explicitUndefined));
+    expect(nodeOf(omittedColor).styles).toMatchObject({ h: 18, bg: "#raised", tooltip: "bug" });
   });
   test("the selected tab takes the selected fill; a locked bar is inert", () => {
     const bar = tabBar(t, {
@@ -413,6 +476,16 @@ describe("static rows and first rows", () => {
 });
 
 describe("toggle chip", () => {
+  test("an omitted color matches an explicitly undefined color", () => {
+    const omitted = toggleChip(t, { id: "c", label: "bug", applied: false });
+    const explicitUndefined = toggleChip(t, {
+      id: "c",
+      label: "bug",
+      applied: false,
+      color: undefined,
+    });
+    expect(visibleTree(omitted)).toEqual(visibleTree(explicitUndefined));
+  });
   test("an applied chip fills on raised and toggles", () => {
     let pressed = 0;
     const chip = toggleChip(t, {

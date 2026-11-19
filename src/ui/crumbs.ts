@@ -105,13 +105,13 @@ export type PickerOption = {
    */
   key?: string;
   /**
-   * The icon's `svg()` path.
+   * The icon's `svg()` path; when omitted, no icon is drawn.
    */
-  icon: string | undefined;
+  icon?: string;
   /**
-   * The icon's color (data, such as a user-picked color), else `muted`.
+   * The icon's color (data, such as a user-picked color); when omitted, `muted`.
    */
-  color: string | undefined;
+  color?: string;
 };
 
 /**
@@ -129,9 +129,9 @@ export type CrumbPickerOptions = {
   any: string;
   choices: readonly PickerOption[];
   /**
-   * The chosen option's key (or its name when it has no key), or undefined for "any".
+   * The chosen option's key (or its name when it has no key); omit it or pass undefined for "any".
    */
-  chosen: string | undefined;
+  chosen?: string;
   open: boolean;
   /**
    * It's the last crumb, where the trail ends.

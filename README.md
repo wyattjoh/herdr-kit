@@ -45,7 +45,7 @@ const ICONS = panelIcons("my-panel"); // ICONS.openInBrowser === "mods/my-panel/
 
 ## Consumer options
 
-`brand` accepts an optional `icon`; omit it for a name-only brand with no icon element or icon gap. `crumbPicker` uses each option's `key` for row ids, selection and `pick`; if omitted, it falls back to `name`. `titleRow` accepts `trailingId` to preserve an existing slot identity such as `page-title-copy`. `panelBody` accepts a separate `contentId` and an optional `measure({ width, height })` callback on the outer body. `button` accepts `spin` in milliseconds and an opt-in `truncateLabel` for a constrained, ellipsized label. `toneMap` includes the `accent` tone for the host theme's accent role. `stateBlock` accepts an optional root `id`; `errorState` accepts a tone and defaults to `danger`.
+`brand` accepts an optional `icon`; omit it for a name-only brand with no icon element or icon gap. `crumbPicker` uses each option's `key` for row ids, selection and `pick`; if omitted, it falls back to `name`. Its choice `icon` and `color`, and the picker's `chosen` value, may also be omitted (no icon, muted icon color, and the "any" choice). `labelChip` and `toggleChip` accept an optional `color`; omitting it uses the muted icon color or draws no dot. `panelFrame`'s `floatWidth` and `panelBody`'s `scrollCap` may be omitted for a pane. `topBar`'s `floating` and `toolRow`'s `fixed` default to `false`. `fitLabels` retains its required positional width argument; for a wrapping pane, pass its tools directly instead of calling it. Explicit `undefined` remains equivalent to omission for optional option-bag fields. `titleRow` accepts `trailingId` to preserve an existing slot identity such as `page-title-copy`. `panelBody` accepts a separate `contentId` and an optional `measure({ width, height })` callback on the outer body. `button` accepts `spin` in milliseconds and an opt-in `truncateLabel` for a constrained, ellipsized label. `toneMap` includes the `accent` tone for the host theme's accent role. `stateBlock` accepts an optional root `id`; `errorState` accepts a tone and defaults to `danger`.
 
 ## Example
 
@@ -71,7 +71,7 @@ const tone = toneMap({ running: "active", passed: "success", failed: "danger" })
 export default class Panel extends View {
   render() {
     const t = theme() as Theme;
-    return panelFrame(t, "my-panel", undefined).child(
+    return panelFrame(t, "my-panel").child(
       cardSection(
         cardHeader(t, "runs-header", "Runs"),
         card(t, "runs").child(
