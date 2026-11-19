@@ -1,6 +1,6 @@
 {
   "name": "@wyattjoh/herdr-ui",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "The Tasks panel's visual system for Herdr mods: theme tokens, controls, chrome, listing cards, chips, tabs, menus, scroll regions, state blocks and icons.",
   "keywords": [
     "gpui",
