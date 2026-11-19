@@ -14,7 +14,7 @@
   "author": "Wyatt Johnson",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wyattjoh/herdr-kit",
+    "url": "git+https://github.com/wyattjoh/herdr-kit.git",
     "directory": "packages/ui"
   },
   "files": [
@@ -44,7 +44,7 @@
     "typecheck:bun": "tsc --noEmit",
     "typecheck:native": "bun scripts/typecheck.ts",
     "test": "bun test src scripts",
-    "pack:check": "bun scripts/pack-check.ts",
+    "pack:check": "bun ../../packages/dev/src/npm-publish-check.ts && bun scripts/pack-check.ts",
     "mod:check": "bun scripts/gallery.ts",
     "check:fast": "bun run typecheck:bun && bun run test && bun run pack:check",
     "check:native": "bun run typecheck:native && bun run mod:check",

@@ -17,8 +17,8 @@
       "name": "@wyattjoh/herdr-dev",
       "version": "0.1.0",
       "bin": {
-        "herdr-check": "./src/cli.ts",
-        "herdr-render-sync": "./src/render-sync.ts",
+        "herdr-check": "src/cli.ts",
+        "herdr-render-sync": "src/render-sync.ts",
       },
       "devDependencies": {
         "@types/bun": "1.4.4",

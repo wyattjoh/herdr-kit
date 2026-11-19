@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
