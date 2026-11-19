@@ -197,6 +197,24 @@ export function checkFailureOutput(outcome: CheckOutcome, output: string): strin
 }
 
 /**
+ * Print a checker outcome and preserve its diagnostics when validation fails.
+ * @param name Mod folder name.
+ * @param outcome Classified checker result.
+ * @param timeoutMs Watchdog budget for the check.
+ * @param output Combined checker stdout and stderr.
+ */
+export function reportCheckResult(
+  name: string,
+  outcome: CheckOutcome,
+  timeoutMs: number,
+  output: string,
+): void {
+  console.log(`${name}: ${outcome} (${timeoutMs}ms budget)`);
+  const failureOutput = checkFailureOutput(outcome, output);
+  if (failureOutput) console.error(failureOutput);
+}
+
+/**
  * Parse matching launchd rows without treating a live PID as a stale job.
  * @param output Output from `launchctl list`.
  * @returns Matching labels, active PIDs, and owner PIDs encoded in labels.
@@ -322,9 +340,7 @@ export async function checkMods(
           if (classification !== "CONNECT_DEADLINE") {
             if (classification === "PASS" && process.env.HERDR_CHECK_CACHE !== "0")
               await writeFile(cachePath, JSON.stringify({ key, outcome: "PASS" }));
-            console.log(`${name}: ${classification} (${timeout}ms budget)`);
-            const failureOutput = checkFailureOutput(classification, output);
-            if (failureOutput) console.error(failureOutput);
+            reportCheckResult(name, classification, timeout, output);
             return classification;
           }
           console.warn(
