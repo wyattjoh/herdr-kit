@@ -24,6 +24,7 @@ import {
   tabBar,
   type Theme,
   HERDR_ICONS,
+  toneLine,
 } from "@wyattjoh/herdr-ui";
 import { checks } from "./checks";
 import { labels } from "./labels";
@@ -106,6 +107,14 @@ export function body(options: {
       }),
     )
     .child(loadingState(t))
+    .child(
+      toneLine(
+        t,
+        "warning",
+        "Showing cached results",
+        "The repository connection is unavailable; showing the last successful scan.",
+      ),
+    )
     .child(
       card(t, "gallery-compact-state").child(
         cardBody().child(
