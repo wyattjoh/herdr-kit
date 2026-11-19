@@ -187,6 +187,16 @@ export function classifyCheck(output: string, exitCode: number, timedOut = false
 }
 
 /**
+ * Return checker diagnostics for a real failure, preserving their original content.
+ * @param outcome Classified checker outcome.
+ * @param output Combined stdout and stderr from the checker.
+ * @returns Diagnostics for FAIL, or an empty string for other outcomes.
+ */
+export function checkFailureOutput(outcome: CheckOutcome, output: string): string {
+  return outcome === "FAIL" ? output : "";
+}
+
+/**
  * Parse matching launchd rows without treating a live PID as a stale job.
  * @param output Output from `launchctl list`.
  * @returns Matching labels, active PIDs, and owner PIDs encoded in labels.
@@ -313,6 +323,8 @@ export async function checkMods(
             if (classification === "PASS" && process.env.HERDR_CHECK_CACHE !== "0")
               await writeFile(cachePath, JSON.stringify({ key, outcome: "PASS" }));
             console.log(`${name}: ${classification} (${timeout}ms budget)`);
+            const failureOutput = checkFailureOutput(classification, output);
+            if (failureOutput) console.error(failureOutput);
             return classification;
           }
           console.warn(
