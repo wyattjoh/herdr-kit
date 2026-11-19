@@ -3,9 +3,11 @@ import { v_flex } from "gpui-base";
 import {
   button,
   card,
+  cardBody,
   cardHeader,
   cardNote,
   cardSection,
+  compactStateBlock,
   countChip,
   emptyState,
   errorState,
@@ -104,6 +106,17 @@ export function body(options: {
       }),
     )
     .child(loadingState(t))
+    .child(
+      card(t, "gallery-compact-state").child(
+        cardBody().child(
+          compactStateBlock(t, {
+            id: "gallery-compact-loading",
+            title: "Reading repository",
+            detail: "This may take a moment.",
+          }),
+        ),
+      ),
+    )
     .child(
       metadataGrid(t, {
         id: "gallery-metadata",

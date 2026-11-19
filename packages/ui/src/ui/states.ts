@@ -40,6 +40,22 @@ export const stateBlock = (t: Theme, options: StateOptions): Element =>
   drawState(t, options, t.foreground);
 
 /**
+ * A smaller state message for use inside a card.
+ * @param t The theme.
+ * @param options What it says, and an optional id for the block.
+ * @returns The compact state block.
+ */
+export const compactStateBlock = (t: Theme, options: StateOptions): Element =>
+  v_flex()
+    .when(options.id !== undefined, (el) => el.id(options.id!))
+    .gap(STATE.compactGap)
+    .child(div().text_size(TEXT.label).font_medium().text_color(t.foreground).child(options.title))
+    .when(options.detail !== undefined, (el) =>
+      el.child(div().text_size(TEXT.caption).text_color(t.muted).child(options.detail!)),
+    )
+    .when(options.action !== undefined, (el) => el.child(h_flex().child(options.action!)));
+
+/**
  * Nothing to show yet, and how to get something.
  * @param t The theme.
  * @param options What it says.
