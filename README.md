@@ -41,7 +41,7 @@ import { panelIcons } from "@wyattjoh/herdr-ui";
 const ICONS = panelIcons("my-panel"); // ICONS.openInBrowser === "mods/my-panel/globe.svg"
 ```
 
-`panelIcons` maps the Tasks panel's control roles; `bundledIconPaths("my-panel")` gives every bundled icon by name, including `tag` and `refresh`. `HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. `copyNotices` stages `NOTICE.md` and all `licenses/*.txt` files beside the mod while preserving the notice's relative links.
+`panelIcons` maps the Tasks panel's control roles; `bundledIconPaths("my-panel")` gives every bundled icon by name, including `tag` and `refresh`. `HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. `copyNotices` stages `LICENSE`, `NOTICE.md` and all `licenses/*.txt` files beside the mod while preserving the notice's relative links.
 
 ## Consumer options
 

@@ -36,15 +36,15 @@ export async function copyIcons(
 }
 
 /**
- * Copies the package's third-party notice and every bundled licence text into a staged mod folder,
- * preserving the `licenses/` paths referenced by NOTICE.md.
+ * Copies the package's LICENSE, third-party notice and every bundled licence text into a staged
+ * mod folder, preserving the paths referenced by NOTICE.md.
  * @param modDir The staged mod folder (`<stage>/mods/<name>`).
  * @returns The written files' paths.
  */
 export async function copyNotices(modDir: string): Promise<string[]> {
   const licenses = (await readdir(LICENSES_DIR)).filter((name) => name.endsWith(".txt")).sort();
   await mkdir(join(modDir, "licenses"), { recursive: true });
-  const files = ["NOTICE.md", ...licenses.map((name) => join("licenses", name))];
+  const files = ["LICENSE", "NOTICE.md", ...licenses.map((name) => join("licenses", name))];
   return Promise.all(
     files.map(async (file) => {
       const destination = join(modDir, file);
