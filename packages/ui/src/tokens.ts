@@ -133,6 +133,24 @@ export const ROW = {
 } as const;
 
 /**
+ * The muted bars of a placeholder list row.
+ */
+export const SKELETON = {
+  /**
+   * The leading mark's width and height.
+   */
+  markSize: 14,
+  /**
+   * The title bar's height.
+   */
+  barHeight: 8,
+  /**
+   * The bars' corner radius.
+   */
+  barRadius: 4,
+} as const;
+
+/**
  * How a group's body folds: its height eases to its rows' total, or to nothing.
  */
 export const FOLD_MOTION = { duration: 200, easing: "ease-out" } as const;

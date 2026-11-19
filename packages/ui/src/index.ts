@@ -10,6 +10,7 @@ export * from "./ui/document";
 export * from "./ui/frame";
 export * from "./ui/menu";
 export * from "./ui/scroll";
+export * from "./ui/skeleton";
 export * from "./ui/states";
 export * from "./ui/tabs";
 export * from "./ui/theme";

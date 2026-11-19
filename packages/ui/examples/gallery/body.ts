@@ -16,6 +16,7 @@ import {
   MENU,
   PANEL,
   rowNote,
+  skeletonRows,
   tabBar,
   type Theme,
   HERDR_ICONS,
@@ -101,6 +102,7 @@ export function body(options: {
       }),
     )
     .child(loadingState(t))
+    .children(skeletonRows(t, "gallery-skeleton-row", 3))
     .child(
       menuPanel(t, MENU.width)
         .when(state.search !== undefined, (el) =>
