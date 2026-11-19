@@ -1,11 +1,20 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-component-in-tag": true,
+  "bootstrap-sha": "1e938ae076b7a15de3deec2a646f5c703c45c0be",
   "packages": {
-    ".": {
+    "packages/ui": {
       "package-name": "@wyattjoh/herdr-ui",
       "release-type": "node",
-      "include-component-in-tag": false,
+      "component": "ui",
       "bump-minor-pre-major": true
+    },
+    "packages/dev": {
+      "package-name": "@wyattjoh/herdr-dev",
+      "release-type": "node",
+      "component": "dev",
+      "bump-minor-pre-major": true,
+      "release-as": "0.1.0"
     }
   }
 }
