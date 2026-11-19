@@ -151,6 +151,28 @@ export const SKELETON = {
 } as const;
 
 /**
+ * A compact grid of labeled properties, like the record detail header.
+ */
+export const METADATA_GRID = {
+  /**
+   * The property cell's horizontal inset.
+   */
+  paddingX: 8,
+  /**
+   * The property cell's vertical inset.
+   */
+  paddingY: 6,
+  /**
+   * Between a label and its value.
+   */
+  gap: 3,
+  /**
+   * The label's text size.
+   */
+  labelTextSize: 11,
+} as const;
+
+/**
  * How a group's body folds: its height eases to its rows' total, or to nothing.
  */
 export const FOLD_MOTION = { duration: 200, easing: "ease-out" } as const;
