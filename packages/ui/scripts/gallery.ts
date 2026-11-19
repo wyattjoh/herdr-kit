@@ -3,6 +3,7 @@
 // icons with the installed package's build helper, and loads the folder once with
 // `herdr-app check`, with a scratch stage as HERDR_APP_HOME so the live home is never touched.
 import { $ } from "bun";
+import { checkMods } from "@wyattjoh/herdr-dev";
 import { cp, mkdir, readdir, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
@@ -62,7 +63,4 @@ console.log(
   `gallery: bundled ${bundle.length} bytes, copied ${copied.length} icons and ${notices.length} notice files into ${DIR}`,
 );
 
-const check = await $`herdr-app check ${DIR}`
-  .env({ ...process.env, HERDR_APP_HOME: STAGE })
-  .nothrow();
-process.exit(check.exitCode);
+await checkMods(STAGE, [MOD]);
