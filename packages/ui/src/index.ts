@@ -9,6 +9,7 @@ export * from "./ui/crumbs";
 export * from "./ui/document";
 export * from "./ui/frame";
 export * from "./ui/menu";
+export * from "./ui/metadata";
 export * from "./ui/scroll";
 export * from "./ui/skeleton";
 export * from "./ui/states";

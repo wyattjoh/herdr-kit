@@ -13,6 +13,7 @@ import {
   documentCard,
   menuInput,
   menuPanel,
+  metadataGrid,
   MENU,
   PANEL,
   rowNote,
@@ -102,6 +103,16 @@ export function body(options: {
       }),
     )
     .child(loadingState(t))
+    .child(
+      metadataGrid(t, {
+        id: "gallery-metadata",
+        cells: [
+          { id: "state", label: "State", value: "Active" },
+          { id: "owner", label: "Owner", value: "Herdr UI" },
+          { id: "count", label: "Items", value: "3" },
+        ],
+      }),
+    )
     .children(skeletonRows(t, "gallery-skeleton-row", 3))
     .child(
       menuPanel(t, MENU.width)
