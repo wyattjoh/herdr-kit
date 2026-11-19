@@ -289,6 +289,32 @@ export const MENU_SURFACE = {
 } as const;
 
 /**
+ * A compact menu row's shape, matching the Tasks property menu.
+ */
+export const MENU_ROW_STYLE = {
+  /**
+   * Horizontal inset on each row.
+   */
+  paddingX: 8,
+  /**
+   * Between the icon, label and affordances.
+   */
+  gap: 9,
+  /**
+   * The row's corner radius.
+   */
+  radius: MENU_SURFACE.radius,
+  /**
+   * The row's text size.
+   */
+  textSize: 12.8,
+  /**
+   * The flyout chevron's size.
+   */
+  affordanceSize: 12,
+} as const;
+
+/**
  * Domain-neutral tones, each the theme role the Tasks panel uses for that meaning: `neutral`
  * for not started (slate), `info` for ready (blue), `active` for in progress (Herdr's amber
  * `working`), `success` for done (green), `danger` for canceled or blocked (red), `warning`
