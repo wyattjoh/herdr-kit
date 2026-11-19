@@ -30,6 +30,14 @@ jobs:
         with:
           bun-version: 1.4.4
 
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          package-manager-cache: false
+
+      - name: Install a trusted-publishing npm
+        run: npm install --global npm@12.2.2
+
       - name: Install frozen dependencies
         run: bun install --frozen-lockfile
 
