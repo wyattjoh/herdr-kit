@@ -1,0 +1,38 @@
+{
+  "name": "@wyattjoh/herdr-dev",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Shared development tooling for Herdr mods",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wyattjoh/herdr-kit",
+    "directory": "packages/dev"
+  },
+  "bin": {
+    "herdr-check": "./src/cli.ts",
+    "herdr-render-sync": "./src/render-sync.ts"
+  },
+  "files": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./renderer": "./src/renderer.ts",
+    "./test/renderer": "./src/renderer.ts"
+  },
+  "scripts": {
+    "test": "bun test src",
+    "lint:render-sync": "bun src/render-sync.ts",
+    "typecheck": "tsc --noEmit",
+    "check:fast": "bun src/render-sync.ts src ../ui/src && bun run typecheck && bun run test"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "typescript": "7.0.2"
+  }
+}
