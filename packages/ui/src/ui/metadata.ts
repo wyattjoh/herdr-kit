@@ -12,6 +12,14 @@ export type MetadataGridCell = {
    * The cell id, namespaced by the grid id.
    */
   id: string;
+  /**
+   * The cell's full element id, used as given instead of the namespaced default.
+   */
+  elementId?: string;
+  /**
+   * An id for the slot that holds the cell, for consumers that address the slot directly.
+   */
+  slotId?: string;
   label: string;
   value: string;
   /**
@@ -63,7 +71,7 @@ export function metadataGrid(t: Theme, options: MetadataGridOptions): Element {
     .children(
       options.cells.map((cell, index) => {
         const content = v_flex()
-          .id(`${options.id}-${cell.id}`)
+          .id(cell.elementId ?? `${options.id}-${cell.id}`)
           .w_full()
           .min_w(0)
           .overflow_hidden()
@@ -84,7 +92,7 @@ export function metadataGrid(t: Theme, options: MetadataGridOptions): Element {
           .child(
             h_flex()
               .min_w(0)
-              .gap(METADATA_GRID.gap)
+              .gap(METADATA_GRID.valueGap)
               .items_center()
               .when(cell.leading !== undefined, (el) => el.child(cell.leading!))
               .child(
@@ -98,7 +106,8 @@ export function metadataGrid(t: Theme, options: MetadataGridOptions): Element {
               ),
           );
         const wrapped = cell.wrap === undefined ? content : cell.wrap(content);
-        return v_flex().flex_1().min_w(0).child(wrapped);
+        const slot = v_flex().flex_1().min_w(0);
+        return (cell.slotId === undefined ? slot : slot.id(cell.slotId)).child(wrapped);
       }),
     );
 }

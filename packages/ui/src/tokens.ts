@@ -167,6 +167,10 @@ export const METADATA_GRID = {
    */
   gap: 3,
   /**
+   * Between a value's leading visual and its text, matching the Tasks panel's button gap.
+   */
+  valueGap: 5,
+  /**
    * The label's text size.
    */
   labelTextSize: 11,
