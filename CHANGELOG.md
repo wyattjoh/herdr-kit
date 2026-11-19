@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/wyattjoh/herdr-ui/compare/v0.4.1...v0.5.0) (2026-11-19)
+
+
+### Features
+
+* make defaulted option fields optional ([4118a32](https://github.com/wyattjoh/herdr-ui/commit/4118a32c35b519c8f8662dfd0ef58e9a18f1e766))
+
 ## [0.4.1](https://github.com/wyattjoh/herdr-ui/compare/v0.4.0...v0.4.1) (2026-11-19)
 
 
