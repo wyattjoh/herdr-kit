@@ -1,6 +1,5 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "last-release-sha": "6d31bd41adccac944d3635d770585a0db8e36059",
   "packages": {
     ".": {
       "package-name": "@wyattjoh/herdr-ui",
