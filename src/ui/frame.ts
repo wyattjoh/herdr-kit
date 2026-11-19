@@ -72,20 +72,22 @@ export function topBar(
 }
 
 /**
- * A panel's mark and name, as tall as the buttons: the mark in the accent color and the name in
- * the foreground.
+ * A panel's brand, as tall as the buttons: an optional mark in the accent color and a name in
+ * the foreground. When omitted, the mark and its gap are left out for a name-only brand.
  * @param t The theme.
- * @param options The mark's `svg()` path, the name, and the id (default `brand`).
+ * @param options The optional mark's `svg()` path, the name, and the id (default `brand`).
  * @returns The brand.
  */
-export const brand = (t: Theme, options: { icon: string; name: string; id?: string }): Element =>
+export const brand = (t: Theme, options: { icon?: string; name: string; id?: string }): Element =>
   h_flex()
     .id(options.id ?? "brand")
     .h(BUTTON_STYLE.height)
     .flex_none()
-    .gap(BRAND.gap)
+    .when(options.icon !== undefined, (el) => el.gap(BRAND.gap))
     .items_center()
-    .child(svg(options.icon).size(BRAND.iconSize).flex_none().text_color(t.accent))
+    .when(options.icon !== undefined, (el) =>
+      el.child(svg(options.icon!).size(BRAND.iconSize).flex_none().text_color(t.accent)),
+    )
     .child(
       div().text_size(BRAND.textSize).font_semibold().text_color(t.foreground).child(options.name),
     );

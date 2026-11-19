@@ -45,7 +45,7 @@ const ICONS = panelIcons("my-panel"); // ICONS.openInBrowser === "mods/my-panel/
 
 ## Consumer options
 
-`crumbPicker` uses each option's `key` for row ids, selection and `pick`; if omitted, it falls back to `name`. `titleRow` accepts `trailingId` to preserve an existing slot identity such as `page-title-copy`. `panelBody` accepts a separate `contentId` and an optional `measure({ width, height })` callback on the outer body. `button` accepts `spin` in milliseconds and an opt-in `truncateLabel` for a constrained, ellipsized label. `toneMap` includes the `accent` tone for the host theme's accent role. `stateBlock` accepts an optional root `id`; `errorState` accepts a tone and defaults to `danger`.
+`brand` accepts an optional `icon`; omit it for a name-only brand with no icon element or icon gap. `crumbPicker` uses each option's `key` for row ids, selection and `pick`; if omitted, it falls back to `name`. `titleRow` accepts `trailingId` to preserve an existing slot identity such as `page-title-copy`. `panelBody` accepts a separate `contentId` and an optional `measure({ width, height })` callback on the outer body. `button` accepts `spin` in milliseconds and an opt-in `truncateLabel` for a constrained, ellipsized label. `toneMap` includes the `accent` tone for the host theme's accent role. `stateBlock` accepts an optional root `id`; `errorState` accepts a tone and defaults to `danger`.
 
 ## Example
 

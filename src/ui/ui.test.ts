@@ -15,7 +15,7 @@ import {
 } from "./cards";
 import { countChip, labelChip, toggleChip } from "./chips";
 import { tabBar } from "./tabs";
-import { panelBody, panelFrame, toolRow, topBar } from "./frame";
+import { brand, panelBody, panelFrame, toolRow, topBar } from "./frame";
 import { errorState, stateBlock } from "./states";
 import { documentCard } from "./document";
 import { menuPanel } from "./menu";
@@ -80,6 +80,33 @@ describe("button", () => {
 });
 
 describe("chrome", () => {
+  test("brand keeps its icon and gap before the name when given an icon", () => {
+    const node = nodeOf(brand(t, { icon: "git.svg", name: "Git" }));
+    const mark = walk(node).find((child) => child.kind === "svg")!;
+    expect(node.styles).toMatchObject({ id: "brand", h: 26, gap: 6 });
+    expect(node.calls).toEqual(["id", "h", "flex_none", "gap", "items_center"]);
+    expect(mark.styles).toMatchObject({ asset: "git.svg", size: 20, flex_none: true });
+    expect(mark.styles.text_color).toBe("#accent");
+    expect(node.children.map((child) => (typeof child === "string" ? child : child.kind))).toEqual([
+      "svg",
+      "div",
+    ]);
+    expect(texts(node)).toEqual(["Git"]);
+  });
+  test("brand without an icon is name-only and has no icon gap", () => {
+    const node = nodeOf(brand(t, { name: "Git" }));
+    const name = walk(node).find((child) => child.kind === "div")!;
+    expect(node.styles.id).toBe("brand");
+    expect(node.styles.h).toBe(26);
+    expect(node.calls).toEqual(["id", "h", "flex_none", "items_center"]);
+    expect(node.children.map((child) => (typeof child === "string" ? child : child.kind))).toEqual([
+      "div",
+    ]);
+    expect(name.styles.text_size).toBe(15);
+    expect(name.styles.font_semibold).toBe(true);
+    expect(name.styles.text_color).toBe(t.foreground);
+    expect(texts(node)).toEqual(["Git"]);
+  });
   test("a pane frame fills its block; a float takes its width", () => {
     expect(nodeOf(panelFrame(t, "root", undefined)).styles).toMatchObject({
       size_full: true,
