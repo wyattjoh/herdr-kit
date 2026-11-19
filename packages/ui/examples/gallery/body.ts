@@ -1,4 +1,4 @@
-import type { Context, Element } from "gpui-kit";
+import { svg, type Context, type Element } from "gpui-kit";
 import { v_flex } from "gpui-base";
 import {
   button,
@@ -13,6 +13,7 @@ import {
   documentCard,
   menuInput,
   menuPanel,
+  menuRow,
   metadataGrid,
   MENU,
   PANEL,
@@ -118,6 +119,17 @@ export function body(options: {
       menuPanel(t, MENU.width)
         .when(state.search !== undefined, (el) =>
           el.child(menuInput(t, state.search!, "GalleryMenu")),
+        )
+        .child(
+          menuRow(t, {
+            id: "gallery-menu-row",
+            label: "Open details",
+            leading: svg(HERDR_ICONS.terminal).size(MENU.icon).flex_none().text_color(t.muted),
+            flyout: true,
+            checked: true,
+            selected: true,
+            onClick: noop,
+          }),
         )
         .child(rowNote(t, "Menu surface")),
     )
