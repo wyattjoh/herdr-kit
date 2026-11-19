@@ -55,4 +55,28 @@ describe("metadataGrid", () => {
     expect(byId(grid, "metadata-wrapper")).toBeDefined();
     expect(byId(grid, "status-icon")).toBeDefined();
   });
+
+  test("uses explicit cell and slot ids and the value gap", () => {
+    const grid = metadataGrid(t, {
+      id: "page-metadata",
+      cells: [
+        {
+          id: "status",
+          elementId: "metadata-status",
+          slotId: "metadata-slot-status",
+          label: "Status",
+          value: "Active",
+          leading: div().id("status-icon").child("•"),
+        },
+        { id: "owner", label: "Owner", value: "Herdr UI" },
+      ],
+    });
+    expect(byId(grid, "page-metadata-status")).toBeUndefined();
+    expect(byId(grid, "metadata-status")).toBeDefined();
+    expect(byId(grid, "page-metadata-owner")).toBeDefined();
+    const slot = byId(grid, "metadata-slot-status")!;
+    expect(byId(slot, "metadata-status")).toBeDefined();
+    const valueRow = byId(grid, "metadata-status")!.children[1] as ReturnType<typeof nodeOf>;
+    expect(valueRow.styles.gap).toBe(METADATA_GRID.valueGap);
+  });
 });
