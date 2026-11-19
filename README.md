@@ -23,7 +23,7 @@ Typecheck the mod against the declarations Herdr writes into its home (`~/.confi
 | --------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | `@wyattjoh/herdr-ui`        | everything below plus the element functions                                                             | yes, for mod bundles                           |
 | `@wyattjoh/herdr-ui/pure`   | tokens, tones, color helpers, button style and label fitting, menu metrics, icon paths, `RecordScrolls` | no: safe in tests and a Bun-side `tsc`         |
-| `@wyattjoh/herdr-ui/assets` | `copyIcons`, for build scripts                                                                          | no, uses `node:fs`; never import it from a mod |
+| `@wyattjoh/herdr-ui/assets` | `copyIcons` and `copyNotices`, for build scripts                                                        | no, uses `node:fs`; never import it from a mod |
 
 ## Icons
 
@@ -31,15 +31,21 @@ Herdr resolves `svg()` paths against its home, so a bundled icon lives at `mods/
 
 ```ts
 // scripts/build.ts
-import { copyIcons } from "@wyattjoh/herdr-ui/assets";
-await copyIcons(join(stage, "mods", "my-panel"));
+import { copyIcons, copyNotices } from "@wyattjoh/herdr-ui/assets";
+const modDir = join(stage, "mods", "my-panel");
+await copyIcons(modDir);
+await copyNotices(modDir);
 
 // src/main.ts
 import { panelIcons } from "@wyattjoh/herdr-ui";
 const ICONS = panelIcons("my-panel"); // ICONS.openInBrowser === "mods/my-panel/globe.svg"
 ```
 
-`panelIcons` maps the Tasks panel's control roles; `bundledIconPaths("my-panel")` gives every bundled icon by name, including `tag` and `refresh`. `HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. Icon licenses are in [NOTICE.md](NOTICE.md).
+`panelIcons` maps the Tasks panel's control roles; `bundledIconPaths("my-panel")` gives every bundled icon by name, including `tag` and `refresh`. `HERDR_ICONS` names icons Herdr ships with its own mods (`mods/workspace-chrome/…`, `mods/files/…`); those are referenced, never copied. `copyNotices` stages `NOTICE.md` and all `licenses/*.txt` files beside the mod while preserving the notice's relative links.
+
+## Consumer options
+
+`crumbPicker` uses each option's `key` for row ids, selection and `pick`; if omitted, it falls back to `name`. `titleRow` accepts `trailingId` to preserve an existing slot identity such as `page-title-copy`. `panelBody` accepts a separate `contentId` and an optional `measure({ width, height })` callback on the outer body. `button` accepts `spin` in milliseconds and an opt-in `truncateLabel` for a constrained, ellipsized label. `toneMap` includes the `accent` tone for the host theme's accent role. `stateBlock` accepts an optional root `id`; `errorState` accepts a tone and defaults to `danger`.
 
 ## Example
 

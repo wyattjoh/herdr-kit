@@ -1,13 +1,17 @@
 // Empty, error and loading blocks: a title, an optional detail and an optional action.
 import { div, type Element } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
-import { STATE, TEXT } from "../tokens";
-import type { Theme } from "./theme";
+import { STATE, TEXT, TONES, type Tone } from "../tokens";
+import { role, type Theme } from "./theme";
 
 /**
  * What a state block says.
  */
 export type StateOptions = {
+  /**
+   * The block's id; omitted by default.
+   */
+  id?: string;
   title: string;
   detail?: string;
   /**
@@ -16,20 +20,24 @@ export type StateOptions = {
   action?: Element;
 };
 
-/**
- * A message block: the title in the foreground, its detail muted, then an optional action.
- * @param t The theme.
- * @param options What it says.
- * @returns The block.
- */
-export const stateBlock = (t: Theme, options: StateOptions): Element =>
+const drawState = (t: Theme, options: StateOptions, titleColor: Theme[string]): Element =>
   v_flex()
+    .when(options.id !== undefined, (el) => el.id(options.id!))
     .gap(STATE.gap)
-    .child(div().text_size(TEXT.body).font_medium().text_color(t.foreground).child(options.title))
+    .child(div().text_size(TEXT.body).font_medium().text_color(titleColor).child(options.title))
     .when(options.detail !== undefined, (el) =>
       el.child(div().text_size(TEXT.label).text_color(t.muted).child(options.detail!)),
     )
     .when(options.action !== undefined, (el) => el.child(h_flex().child(options.action!)));
+
+/**
+ * A message block: the title in the foreground, its detail muted, then an optional action.
+ * @param t The theme.
+ * @param options What it says, and an optional id for the block.
+ * @returns The block.
+ */
+export const stateBlock = (t: Theme, options: StateOptions): Element =>
+  drawState(t, options, t.foreground);
 
 /**
  * Nothing to show yet, and how to get something.
@@ -40,12 +48,23 @@ export const stateBlock = (t: Theme, options: StateOptions): Element =>
 export const emptyState = (t: Theme, options: StateOptions): Element => stateBlock(t, options);
 
 /**
- * Something failed: what, why, and maybe a retry.
+ * What an {@link errorState} says.
+ */
+export type ErrorStateOptions = StateOptions & {
+  /**
+   * The title's tone; defaults to `danger`.
+   */
+  tone?: Tone;
+};
+
+/**
+ * Something failed: what, why, and maybe a retry; its title defaults to the `danger` tone.
  * @param t The theme.
- * @param options What it says.
+ * @param options What it says and its optional tone.
  * @returns The block.
  */
-export const errorState = (t: Theme, options: StateOptions): Element => stateBlock(t, options);
+export const errorState = (t: Theme, options: ErrorStateOptions): Element =>
+  drawState(t, options, role(t, TONES[options.tone ?? "danger"]));
 
 /**
  * Work in progress.

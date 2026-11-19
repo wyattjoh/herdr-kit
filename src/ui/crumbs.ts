@@ -101,6 +101,10 @@ export function crumb(t: Theme, options: CrumbOptions): Element {
 export type PickerOption = {
   name: string;
   /**
+   * The option's identity for its row id, selection and `pick`; defaults to `name`.
+   */
+  key?: string;
+  /**
    * The icon's `svg()` path.
    */
   icon: string | undefined;
@@ -116,7 +120,7 @@ export type PickerOption = {
 export type CrumbPickerOptions = {
   /**
    * The picker's id; its parts are `<id>-crumb`, `<id>-chevron`, `<id>-popover`,
-   * `<id>-list` and `<id>-<choice name>` (`<id>-all` for the "any" row).
+   * `<id>-list` and `<id>-<choice key>` (the name by default; `<id>-all` for the "any" row).
    */
   id: string;
   /**
@@ -125,7 +129,7 @@ export type CrumbPickerOptions = {
   any: string;
   choices: readonly PickerOption[];
   /**
-   * The chosen option's name, or undefined for "any".
+   * The chosen option's key (or its name when it has no key), or undefined for "any".
    */
   chosen: string | undefined;
   open: boolean;
@@ -138,9 +142,9 @@ export type CrumbPickerOptions = {
    */
   browse: (cx: Context) => void;
   /**
-   * Picks a choice by name, or undefined for "any".
+   * Picks a choice by key (or its name when it has no key), or undefined for "any".
    */
-  pick: (name: string | undefined, cx: Context) => void;
+  pick: (key: string | undefined, cx: Context) => void;
   /**
    * The popover opened or closed.
    */
@@ -167,19 +171,20 @@ const optionIcon = (t: Theme, option: PickerOption): Element =>
  */
 export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
   const hold = options.hold ?? letThrough;
-  const chosen = options.choices.find((choice) => choice.name === options.chosen);
+  const keyOf = (choice: PickerOption | undefined) => choice?.key ?? choice?.name;
+  const chosen = options.choices.find((choice) => keyOf(choice) === options.chosen);
   const option = (choice: PickerOption | undefined) =>
     h_flex()
-      .id(`${options.id}-${choice?.name ?? "all"}`)
+      .id(`${options.id}-${keyOf(choice) ?? "all"}`)
       .h(BUTTON_STYLE.height)
       .flex_none()
       .px(PICKER.optionPaddingX)
       .gap(PICKER.optionGap)
       .items_center()
       .text_size(TEXT.label)
-      .text_color(choice?.name === chosen?.name ? t.foreground : t.muted)
+      .text_color(keyOf(choice) === keyOf(chosen) ? t.foreground : t.muted)
       .hover((style) => style.bg(t.hover))
-      .on_click((_event, cx) => options.pick(choice?.name, cx))
+      .on_click((_event, cx) => options.pick(keyOf(choice), cx))
       .when(choice?.icon !== undefined, (el) => el.child(optionIcon(t, choice!)))
       .child(
         div()
@@ -188,7 +193,7 @@ export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
           .truncate()
           .child(choice?.name ?? options.any),
       )
-      .when(choice?.name === chosen?.name, (el) =>
+      .when(keyOf(choice) === keyOf(chosen), (el) =>
         el.child(svg(HERDR_ICONS.check).size(BUTTON_STYLE.iconSize).flex_none()),
       );
   const label = hold(
@@ -251,9 +256,14 @@ export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
  */
 export type TitleRowOptions = {
   /**
-   * The row's id; default `page-title`. Its parts are `<id>-icon` and `<id>-trailing`.
+   * The row's id; default `page-title`. Its icon is `<id>-icon`; its trailing slot defaults to
+   * `<id>-trailing`.
    */
   id?: string;
+  /**
+   * The trailing slot's id; defaults to `<id>-trailing`.
+   */
+  trailingId?: string;
   title: string;
   /**
    * A record's key or number, drawn muted before the title.
@@ -277,8 +287,8 @@ export type TitleRowOptions = {
  */
 export function titleRow(t: Theme, options: TitleRowOptions): Element {
   const id = options.id ?? "page-title";
-  const lineBox = (part: string, child: Element) =>
-    h_flex().id(`${id}-${part}`).flex_none().h(TITLE.lineHeight).items_center().child(child);
+  const lineBox = (partId: string, child: Element) =>
+    h_flex().id(partId).flex_none().h(TITLE.lineHeight).items_center().child(child);
   return h_flex()
     .id(id)
     .flex_none()
@@ -291,12 +301,14 @@ export function titleRow(t: Theme, options: TitleRowOptions): Element {
     .border_color(t.border)
     .text_size(TITLE.textSize)
     .font_semibold()
-    .when(options.icon !== undefined, (el) => el.child(lineBox("icon", options.icon!)))
+    .when(options.icon !== undefined, (el) => el.child(lineBox(`${id}-icon`, options.icon!)))
     .when(options.identifier !== undefined && options.identifier !== "", (el) =>
       el.child(div().flex_none().text_color(t.muted).child(options.identifier!)),
     )
     .child(div().flex_1().min_w_0().text_color(t.foreground).child(options.title))
-    .when(options.trailing !== undefined, (el) => el.child(lineBox("trailing", options.trailing!)));
+    .when(options.trailing !== undefined, (el) =>
+      el.child(lineBox(options.trailingId ?? `${id}-trailing`, options.trailing!)),
+    );
 }
 
 /**

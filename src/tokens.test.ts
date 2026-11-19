@@ -6,7 +6,15 @@ test("the title's line box is gpui's default line height", () => {
 });
 
 test("toneMap maps a domain's states to theme roles", () => {
-  const ci = toneMap({ queued: "neutral", running: "active", passed: "success", failed: "danger" });
+  const ci = toneMap({
+    queued: "neutral",
+    running: "active",
+    passed: "success",
+    failed: "danger",
+    merged: "accent",
+  });
   expect(ci("running")).toBe(TONES.active);
   expect(ci("failed")).toBe("ansi1");
+  expect(TONES.accent).toBe("accent");
+  expect(ci("merged")).toBe("accent");
 });

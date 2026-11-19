@@ -43,7 +43,7 @@ export const HERDR_ICONS = {
   spinner: "mods/workspace-chrome/spinner.svg",
   gitBranch: "mods/workspace-chrome/git-branch.svg",
   chevronDown: "mods/files/chevron-down.svg",
-  chevronRight: "mods/files/chevron-right.svg",
+  chevronRight: "mods/workspace-chrome/chevron-right.svg",
 } as const;
 
 const MOD_FOLDER = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;

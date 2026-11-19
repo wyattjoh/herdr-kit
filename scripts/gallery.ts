@@ -53,10 +53,12 @@ for (const forbidden of ["node:fs", "copyIcons", "fileURLToPath"])
 
 const assets = (await import(Bun.resolveSync("@wyattjoh/herdr-ui/assets", CONSUMER))) as {
   copyIcons: (dir: string) => Promise<string[]>;
+  copyNotices: (dir: string) => Promise<string[]>;
 };
 const copied = await assets.copyIcons(DIR);
+const notices = await assets.copyNotices(DIR);
 console.log(
-  `gallery: bundled ${bundle.length} bytes and copied ${copied.length} icons into ${DIR}`,
+  `gallery: bundled ${bundle.length} bytes, copied ${copied.length} icons and ${notices.length} notice files into ${DIR}`,
 );
 
 const check = await $`herdr-app check ${DIR}`

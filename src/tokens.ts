@@ -252,8 +252,8 @@ export const MENU_SURFACE = {
  * Domain-neutral tones, each the theme role the Tasks panel uses for that meaning: `neutral`
  * for not started (slate), `info` for ready (blue), `active` for in progress (Herdr's amber
  * `working`), `success` for done (green), `danger` for canceled or blocked (red), `warning`
- * for blocking (yellow). Herdr's `done` role is blue in its default theme, so success doesn't
- * use it.
+ * for blocking (yellow), and `accent` for the host theme's accent color. Herdr's `done` role is
+ * blue in its default theme, so success doesn't use it.
  */
 export const TONES = {
   neutral: "dim",
@@ -262,6 +262,7 @@ export const TONES = {
   success: "ansi2",
   danger: "ansi1",
   warning: "ansi3",
+  accent: "accent",
   muted: "muted",
 } as const satisfies Record<string, ThemeRole>;
 

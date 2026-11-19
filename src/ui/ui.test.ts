@@ -15,8 +15,8 @@ import {
 } from "./cards";
 import { countChip, labelChip, toggleChip } from "./chips";
 import { tabBar } from "./tabs";
-import { panelFrame, toolRow, topBar } from "./frame";
-import { stateBlock } from "./states";
+import { panelBody, panelFrame, toolRow, topBar } from "./frame";
+import { errorState, stateBlock } from "./states";
 import { documentCard } from "./document";
 import { menuPanel } from "./menu";
 import { paneScrollRegion } from "./scroll";
@@ -40,6 +40,8 @@ describe("button", () => {
     });
     expect(node.hoverStyles).toEqual({ bg: "#hover" });
     expect(texts(node)).toEqual(["Follow"]);
+    expect(node.children).toContain("Follow");
+    expect(node.calls).toContain("flex_none");
     node.click!(undefined, undefined);
     expect(pressed).toBe(1);
   });
@@ -53,7 +55,27 @@ describe("button", () => {
     const node = nodeOf(
       button(t, { id: "pin", label: "Pinned", icon: "p.svg", active: true, onClick: () => {} }),
     );
-    expect(walk(node).find((n) => n.kind === "svg")!.styles.text_color).toBe("#accent");
+    const glyph = walk(node).find((n) => n.kind === "svg")!;
+    expect(glyph.styles.text_color).toBe("#accent");
+    expect(glyph.styles.spin).toBeUndefined();
+  });
+  test("a button can spin its icon and opt into a shrinking ellipsized label", () => {
+    const node = nodeOf(
+      button(t, {
+        id: "refresh",
+        label: "A very long refresh label",
+        icon: "refresh.svg",
+        spin: 1000,
+        truncateLabel: true,
+      }),
+    );
+    const glyph = walk(node).find((n) => n.kind === "svg")!;
+    const label = walk(node).find((n) => n.kind === "div")!;
+    expect(glyph.styles.spin).toBe(1000);
+    expect(node.calls).toContain("min_w_0");
+    expect(node.calls).not.toContain("flex_none");
+    expect(label.calls).toEqual(expect.arrayContaining(["flex_1", "min_w_0", "truncate"]));
+    expect(texts(label)).toEqual(["A very long refresh label"]);
   });
 });
 
@@ -87,30 +109,78 @@ describe("chrome", () => {
     expect(node.calls).toContain("on_mouse_down");
   });
   test("the crumb picker lists any and every choice, checking the chosen", () => {
+    const picked: (string | undefined)[] = [];
     const picker = crumbPicker(t, {
       id: "project",
       any: "All projects",
       choices: [
-        { name: "Alpha", icon: "a.svg", color: "#ff0000" },
+        { name: "Alpha", key: "alpha-uuid", icon: "a.svg", color: "#ff0000" },
         { name: "Beta", icon: undefined, color: undefined },
       ],
-      chosen: "Alpha",
+      chosen: "alpha-uuid",
       open: true,
       current: false,
       browse: () => {},
-      pick: () => {},
+      pick: (key) => picked.push(key),
       setOpen: () => {},
     });
     expect(byId(picker, "project-all")).toBeDefined();
+    expect(byId(picker, "project-alpha-uuid")).toBeDefined();
+    expect(byId(picker, "project-Beta")).toBeDefined();
     expect(
-      walk(byId(picker, "project-Alpha")).some(
+      walk(byId(picker, "project-alpha-uuid")).some(
         (n) => n.styles.asset === "mods/workspace-chrome/check.svg",
       ),
     ).toBe(true);
+    byId(picker, "project-alpha-uuid")!.click!(undefined, undefined);
+    byId(picker, "project-Beta")!.click!(undefined, undefined);
+    byId(picker, "project-all")!.click!(undefined, undefined);
+    expect(picked).toEqual(["alpha-uuid", "Beta", undefined]);
     expect(byId(picker, "project-list")!.styles).toMatchObject({ w: 260, max_h: 7 * 26 });
   });
   test("the title row puts the identifier before the title", () => {
     expect(texts(titleRow(t, { title: "Fix it", identifier: "T-1" }))).toEqual(["T-1", "Fix it"]);
+  });
+  test("the title row lets callers preserve a custom trailing-slot id", () => {
+    const trailing = button(t, { id: "copy-id", label: "ID" });
+    const custom = titleRow(t, {
+      title: "Fix it",
+      trailing,
+      trailingId: "page-title-copy",
+    });
+    const defaulted = titleRow(t, { id: "details-title", title: "Details", trailing });
+    expect(byId(custom, "page-title-copy")).toBeDefined();
+    expect(byId(custom, "page-title-trailing")).toBeUndefined();
+    expect(byId(defaulted, "details-title-trailing")).toBeDefined();
+  });
+  test("panelBody lets callers set the content id and measures the outer body", () => {
+    const sizes: { width: number; height: number }[] = [];
+    const body = panelBody({
+      id: "panel-body",
+      contentId: "panel-content",
+      scrollCap: undefined,
+      hold: (element) => element,
+      content: button(t, { id: "body-content", label: "Body" }),
+      measure: (size) => sizes.push(size),
+    });
+    const outer = nodeOf(body);
+    const onSizeChange = outer.styles.on_size_change as (size: {
+      width: number;
+      height: number;
+    }) => void;
+    expect(byId(body, "panel-body")).toBeDefined();
+    expect(byId(body, "panel-content")).toBeDefined();
+    expect(outer.calls).toContain("on_size_change");
+    onSizeChange({ width: 640, height: 480 });
+    expect(sizes).toEqual([{ width: 640, height: 480 }]);
+  });
+  test("panelBody keeps the derived content id by default", () => {
+    const body = panelBody({
+      scrollCap: undefined,
+      hold: (element) => element,
+      content: button(t, { id: "body-content", label: "Body" }),
+    });
+    expect(byId(body, "panel-body-content")).toBeDefined();
   });
 });
 
@@ -209,6 +279,23 @@ describe("chips, tabs, states, menus, scroll", () => {
       action: button(t, { id: "go", label: "Go", onClick: () => {} }),
     });
     expect(texts(block)).toEqual(["Nothing", "Pick one", "Go"]);
+    expect(nodeOf(block).styles.id).toBeUndefined();
+    expect(walk(block).find((node) => node.children.includes("Nothing"))!.styles.text_color).toBe(
+      t.foreground,
+    );
+  });
+  test("a state block accepts an id and an error state defaults to danger tone", () => {
+    const identified = stateBlock(t, { id: "missing-state", title: "Nothing" });
+    const failure = errorState(t, { id: "error-state", title: "Failed" });
+    const warning = errorState(t, { title: "Warning", tone: "warning" });
+    expect(nodeOf(identified).styles.id).toBe("missing-state");
+    expect(byId(failure, "error-state")).toBeDefined();
+    expect(walk(failure).find((node) => node.children.includes("Failed"))!.styles.text_color).toBe(
+      "#ansi1",
+    );
+    expect(walk(warning).find((node) => node.children.includes("Warning"))!.styles.text_color).toBe(
+      "#ansi3",
+    );
   });
   test("a collapsed document is a faded, capped preview", () => {
     const doc = documentCard(t, {

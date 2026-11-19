@@ -22,5 +22,6 @@ describe("icons", () => {
   test("Herdr's icons stay references to its shipped mods", () => {
     for (const path of Object.values(HERDR_ICONS))
       expect(path).toMatch(/^mods\/(workspace-chrome|files)\/[a-z-]+\.svg$/);
+    expect(HERDR_ICONS.chevronRight).toBe("mods/workspace-chrome/chevron-right.svg");
   });
 });

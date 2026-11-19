@@ -163,6 +163,7 @@ export default class Gallery extends View {
                 id: "refresh",
                 label: "Refresh",
                 icon: BUNDLED.refresh,
+                spin: 1000,
                 onClick: () => {},
               }),
               button(t, {
@@ -181,8 +182,10 @@ export default class Gallery extends View {
           crumbPicker(t, {
             id: "repo",
             any: "All repos",
-            choices: [{ name: "herdr-ui", icon: HERDR_ICONS.gitBranch, color: undefined }],
-            chosen: "herdr-ui",
+            choices: [
+              { name: "herdr-ui", key: "repo-uuid", icon: HERDR_ICONS.gitBranch, color: undefined },
+            ],
+            chosen: "repo-uuid",
             open: this.picker,
             current: false,
             browse: () => {},
@@ -202,6 +205,7 @@ export default class Gallery extends View {
           identifier: "#42",
           title: "Extract the shared UI package",
           icon: titleIcon(t, HERDR_ICONS.gitBranch),
+          trailingId: "page-title-copy",
           trailing: button(t, {
             id: "copy-id",
             label: "ID",
@@ -213,6 +217,7 @@ export default class Gallery extends View {
       )
       .child(
         panelBody({
+          contentId: "panel-content",
           scrollCap: undefined,
           hold: letThrough,
           content: paneScrollRegion("gallery-scroll", this.body(t), PANEL.padding),
@@ -285,6 +290,7 @@ export default class Gallery extends View {
       )
       .child(
         errorState(t, {
+          id: "gallery-error",
           title: "Couldn't load runs",
           detail: "network down",
           action: button(t, { id: "retry", label: "Retry", onClick: () => {} }),

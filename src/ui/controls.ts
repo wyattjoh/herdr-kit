@@ -1,6 +1,6 @@
 // The panel button: an icon and a label in Herdr's top-bar button style, and the toggle pill a
 // tab-row toggle draws in the same metrics.
-import { svg, type Context, type Element } from "gpui-kit";
+import { div, svg, type Context, type Element } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { BUTTON_STYLE, LIT_STYLE, type ButtonStyle } from "../toolbar";
 import { role, type Theme } from "./theme";
@@ -22,6 +22,10 @@ export type ButtonOptions = {
    */
   icon?: string;
   /**
+   * Spins the icon for this many milliseconds.
+   */
+  spin?: number;
+  /**
    * The press handler; without one the button is inert and dimmed.
    */
   onClick?: (cx: Context) => void;
@@ -29,6 +33,10 @@ export type ButtonOptions = {
    * Whether the label shows. Default true.
    */
   labelled?: boolean;
+  /**
+   * Lets a constrained button shrink its label with an ellipsis instead of clipping it.
+   */
+  truncateLabel?: boolean;
   /**
    * A tooltip other than the label.
    */
@@ -60,8 +68,9 @@ export function button(t: Theme, options: ButtonOptions): Element {
     .h(s.height)
     .px(s.paddingX)
     .gap(s.gap)
-    .flex_none()
+    .when(options.truncateLabel !== true, (el) => el.flex_none())
     .items_center()
+    .when(options.truncateLabel === true, (el) => el.min_w_0())
     .rounded(s.radius)
     .text_size(s.textSize)
     .bg(role(t, s.background))
@@ -76,10 +85,17 @@ export function button(t: Theme, options: ButtonOptions): Element {
       el.child(
         svg(icon!)
           .size(s.iconSize)
+          .when(options.spin !== undefined, (glyph) => glyph.spin(options.spin!))
           .when(options.active === true, (glyph) => glyph.text_color(t.accent)),
       ),
     )
-    .when(labelled, (el) => el.child(options.label))
+    .when(labelled, (el) =>
+      el.child(
+        options.truncateLabel === true
+          ? div().flex_1().min_w_0().truncate().child(options.label)
+          : options.label,
+      ),
+    )
     .when(tooltip !== undefined, (el) => el.tooltip(tooltip!));
 }
 

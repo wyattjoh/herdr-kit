@@ -134,8 +134,9 @@ export function toolRow(options: {
 
 /**
  * The padded body under the bands, holding the screen's content column.
- * @param options The body's id (default `panel-body`), the overlay's height cap (undefined in a
- *   pane), `hold` for the content column, and the content.
+ * @param options The body's id (default `panel-body`), the content id (default `<id>-content`),
+ *   the overlay's height cap (undefined in a pane), `hold` for the content column, the content,
+ *   and an optional size measurement callback attached to the outer body.
  * @returns The body.
  */
 export function panelBody(options: {
@@ -143,13 +144,22 @@ export function panelBody(options: {
   hold: <E extends Element>(el: E) => E;
   content: Element;
   id?: string;
+  contentId?: string;
+  /**
+   * Passively measures the outer body when its size changes.
+   */
+  measure?: (size: { width: number; height: number }) => void;
 }): Element {
   const id = options.id ?? "panel-body";
+  const contentId = options.contentId ?? `${id}-content`;
   return fill(v_flex().id(id), options.scrollCap)
+    .when(options.measure !== undefined, (el) =>
+      el.on_size_change((size) => options.measure!(size)),
+    )
     .min_w_0()
     .p(PANEL.padding)
     .child(
-      fill(options.hold(v_flex().id(`${id}-content`)), options.scrollCap)
+      fill(options.hold(v_flex().id(contentId)), options.scrollCap)
         .min_w_0()
         .gap(PANEL.contentGap)
         .child(options.content),
