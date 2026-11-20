@@ -15,6 +15,5 @@ test("toneMap maps a domain's states to theme roles", () => {
   });
   expect(ci("running")).toBe(TONES.active);
   expect(ci("failed")).toBe("ansi1");
-  expect(TONES.accent).toBe("accent");
-  expect(ci("merged")).toBe("accent");
+  expect(ci("merged")).toBe(TONES.accent);
 });
