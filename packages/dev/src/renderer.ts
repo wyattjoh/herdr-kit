@@ -86,8 +86,8 @@ type ExtraHerdrFixture = {
 export type RendererOverrides = {
   kit?: Partial<RendererKit>;
   base?: Partial<RendererBase>;
-  herdr?: Partial<HerdrFixture & ExtraHerdrFixture>;
-  native?: Partial<HerdrFixture & ExtraHerdrFixture>;
+  herdr?: Partial<HostDelegates>;
+  native?: Partial<HostDelegates>;
   inputText?: string;
 };
 
@@ -145,10 +145,12 @@ export type RendererHost = {
   inputs: FakeInput[];
 };
 
+type HostDelegates = HerdrFixture & ExtraHerdrFixture;
+
 type RendererState = {
   kit: Partial<RendererKit>;
   base: Partial<RendererBase>;
-  herdr: Partial<HerdrFixture & ExtraHerdrFixture>;
+  herdr: Partial<HostDelegates>;
   inputText: string | undefined;
 };
 
@@ -233,10 +235,7 @@ export const texts = (root: unknown): string[] =>
  * @param id Element id to locate.
  * @returns The matching node, or undefined.
  */
-export const find = (root: Node | string, id: string): Node | undefined => {
-  if (typeof root === "string") return undefined;
-  return byId(root, id);
-};
+export const find = (root: Node | string, id: string): Node | undefined => byId(root, id);
 
 /**
  * Find an element by id, throwing when it is absent.
@@ -257,11 +256,9 @@ export const get = (root: Node | string, id: string): Node => {
  * @returns Matching ids.
  */
 export const ids = (root: Node | string, prefix: string): string[] =>
-  typeof root === "string"
-    ? []
-    : walk(root)
-        .map((node) => node.styles.id)
-        .filter((id): id is string => typeof id === "string" && id.startsWith(prefix));
+  walk(root)
+    .map((node) => node.styles.id)
+    .filter((id): id is string => typeof id === "string" && id.startsWith(prefix));
 
 /**
  * Collect text descendants joined by single spaces.
@@ -274,23 +271,33 @@ export const text = (root: Node | string): string =>
 /**
  * The fake host fixture backing file, command, terminal and view state.
  */
-export const host: RendererHost = {
-  files: new Map(),
-  terminals: [],
-  focused: null,
-  watches: [],
-  reads: [],
-  unreadable: new Set(),
-  execs: [],
-  execRejects: undefined,
-  execExit: undefined,
-  checking: false,
-  layout: null,
-  shared: new Map(),
-  runs: [],
-  commandReaders: [],
-  inputs: [],
-};
+function emptyHost(): RendererHost {
+  return {
+    files: new Map(),
+    terminals: [],
+    focused: null,
+    watches: [],
+    reads: [],
+    unreadable: new Set(),
+    execs: [],
+    execRejects: undefined,
+    execExit: undefined,
+    checking: false,
+    layout: null,
+    shared: new Map(),
+    runs: [],
+    commandReaders: [],
+    inputs: [],
+  };
+}
+
+export const host: RendererHost = emptyHost();
+
+function recordedArgs(values: unknown[]): unknown {
+  if (values.length === 0) return true;
+  if (values.length === 1) return values[0];
+  return values;
+}
 
 function element(kind: string): unknown {
   const node = {
@@ -304,7 +311,7 @@ function element(kind: string): unknown {
   Object.defineProperties(node, {
     nodes: { get: () => node.children },
     elementId: {
-      get: () => (typeof node.styles.id === "string" ? (node.styles.id as string) : undefined),
+      get: () => (typeof node.styles.id === "string" ? node.styles.id : undefined),
     },
   });
   const unwrap = (child: unknown): Node | string =>
@@ -342,8 +349,7 @@ function element(kind: string): unknown {
         return (...values: unknown[]) => {
           if (COLOR_METHODS.has(key)) validateColor(key, values[0]);
           target.calls.push(key);
-          target.styles[key] =
-            values.length === 0 ? true : values.length === 1 ? values[0] : values;
+          target.styles[key] = recordedArgs(values);
           return builder;
         };
       return undefined;
@@ -357,16 +363,14 @@ const COLOR_PATTERN = /^#(?:[\da-f]{3}|[\da-f]{6}|[\da-f]{8})$/i;
 
 function validateColor(method: string, value: unknown): asserts value is string {
   if (typeof value === "string" && COLOR_PATTERN.test(value)) return;
-  throw new TypeError(
-    `Invalid color passed to ${method}: ${typeof value === "string" ? value : String(value)}`,
-  );
+  throw new TypeError(`Invalid color passed to ${method}: ${String(value)}`);
 }
 
 const factory =
   (kind: string) =>
   (...args: unknown[]) => {
     const value = element(kind);
-    if (args.length > 0) nodeOf(value).styles.ctor = args.length === 1 ? args[0] : args;
+    if (args.length > 0) nodeOf(value).styles.ctor = recordedArgs(args);
     return value;
   };
 
@@ -405,12 +409,20 @@ const textViewMarkdown = (id: string, markdown: string): unknown => {
   return value;
 };
 
+function overrideOr(
+  custom: ((...args: unknown[]) => unknown) | undefined,
+  fallback: (...args: unknown[]) => unknown,
+  args: unknown[],
+): unknown {
+  return custom ? custom(...args) : fallback(...args);
+}
+
 function callFactory(
   custom: RendererFactory | undefined,
   fallback: (...args: unknown[]) => unknown,
   args: unknown[],
 ): unknown {
-  return custom ? (custom as (...values: unknown[]) => unknown)(...args) : fallback(...args);
+  return overrideOr(custom as ((...args: unknown[]) => unknown) | undefined, fallback, args);
 }
 
 const defaultTheme: Record<string, string> = {
@@ -455,10 +467,7 @@ const defaultTheme: Record<string, string> = {
   ansi7: "#e5e5e5",
   ansi8: "#737373",
 };
-const defaultThemeValue = (): Record<string, string> =>
-  new Proxy(defaultTheme, {
-    get: (target, key) => (typeof key === "string" ? target[key] : undefined),
-  });
+const defaultThemeValue = (): Record<string, string> => defaultTheme;
 
 function listFolder(folder: string): string {
   return [...host.files.keys()]
@@ -498,15 +507,13 @@ function defaultWatchFolder(path: string): unknown {
   });
 }
 
-function delegate<K extends keyof (HerdrFixture & ExtraHerdrFixture)>(
+function delegate<K extends keyof HostDelegates>(
   name: K,
   fallback: RendererFactory,
   args: unknown[],
 ): unknown {
   const configured = current.herdr[name] as ((...values: unknown[]) => unknown) | undefined;
-  return configured
-    ? configured(...args)
-    : (fallback as (...values: unknown[]) => unknown)(...args);
+  return overrideOr(configured, fallback as (...values: unknown[]) => unknown, args);
 }
 
 const defaultInput = (state: unknown): unknown => {
@@ -586,34 +593,38 @@ mock.module("gpui-base", () => ({
   },
 }));
 
-mock.module("herdr", () => ({
-  agents: (...args: unknown[]) => delegate("agents", () => [], args),
-  appHome: (...args: unknown[]) => delegate("appHome", () => "/Users/test", args),
-  checking: (...args: unknown[]) => delegate("checking", () => host.checking, args),
-  exec: (...args: unknown[]) => delegate("exec", defaultExec, args),
-  focused: (...args: unknown[]) => delegate("focused", () => host.focused, args),
-  home: (...args: unknown[]) => delegate("home", () => "/Users/test", args),
-  layout: (...args: unknown[]) => delegate("layout", () => host.layout, args),
-  layouts: (...args: unknown[]) => delegate("layouts", () => [], args),
-  nextCommand: (...args: unknown[]) =>
-    delegate(
-      "nextCommand",
-      () => new Promise<string>((resolve) => host.commandReaders.push(resolve)),
-      args,
-    ),
-  notify: (...args: unknown[]) => delegate("notify", () => undefined, args),
-  panes: (...args: unknown[]) => delegate("panes", () => [], args),
-  placement: (...args: unknown[]) => delegate("placement", () => null, args),
-  props: (...args: unknown[]) => delegate("props", () => ({}), args),
-  readTextFile: (...args: unknown[]) => delegate("readTextFile", defaultReadTextFile, args),
-  run: (...args: unknown[]) => delegate("run", defaultRun, args),
-  setShared: (...args: unknown[]) => delegate("setShared", defaultSetShared, args),
-  shared: (...args: unknown[]) => delegate("shared", (key) => host.shared.get(String(key)), args),
-  spaces: (...args: unknown[]) => delegate("spaces", () => [], args),
-  terminals: (...args: unknown[]) => delegate("terminals", () => host.terminals, args),
-  theme: (...args: unknown[]) => delegate("theme", defaultThemeValue, args),
-  watchFolder: (...args: unknown[]) => delegate("watchFolder", defaultWatchFolder, args),
-}));
+const herdrDefaults: Record<keyof HostDelegates, (...args: never[]) => unknown> = {
+  agents: () => [],
+  appHome: () => "/Users/test",
+  checking: () => host.checking,
+  exec: defaultExec,
+  focused: () => host.focused,
+  home: () => "/Users/test",
+  layout: () => host.layout,
+  layouts: () => [],
+  nextCommand: () => new Promise<string>((resolve) => host.commandReaders.push(resolve)),
+  notify: () => undefined,
+  panes: () => [],
+  placement: () => null,
+  props: () => ({}),
+  readTextFile: defaultReadTextFile,
+  run: defaultRun,
+  setShared: defaultSetShared,
+  shared: (key) => host.shared.get(String(key)),
+  spaces: () => [],
+  terminals: () => host.terminals,
+  theme: defaultThemeValue,
+  watchFolder: defaultWatchFolder,
+};
+
+mock.module("herdr", () =>
+  Object.fromEntries(
+    Object.entries(herdrDefaults).map(([name, fallback]) => [
+      name,
+      (...args: unknown[]) => delegate(name as keyof HostDelegates, fallback, args),
+    ]),
+  ),
+);
 
 /**
  * Deliver a command to the oldest pending fake `nextCommand` call.
@@ -691,19 +702,5 @@ export const settle = async (): Promise<void> => {
  * Reset host records, files and pending operations to their initial empty state.
  */
 export const resetHost = (): void => {
-  host.files = new Map();
-  host.terminals = [];
-  host.focused = null;
-  host.watches = [];
-  host.reads = [];
-  host.unreadable = new Set();
-  host.execs = [];
-  host.execRejects = undefined;
-  host.execExit = undefined;
-  host.checking = false;
-  host.layout = null;
-  host.shared = new Map();
-  host.runs = [];
-  host.commandReaders = [];
-  host.inputs = [];
+  Object.assign(host, emptyHost());
 };
