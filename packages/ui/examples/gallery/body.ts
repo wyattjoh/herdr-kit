@@ -71,14 +71,14 @@ export function body(options: {
         toggle: onToggleDocument,
       }),
     )
-    .child(runs({ t, open: state.open, toggleFold: onToggleFold }))
+    .child(runs({ t, open: state.open, onToggleFold }))
     .child(checks(t))
     .child(
       labels({
         t,
         applied: state.applied,
         shown: state.shown,
-        toggleLabel: onToggleLabel,
+        onToggleLabel,
         onTogglePill,
       }),
     )
@@ -155,5 +155,5 @@ export function body(options: {
         )
         .child(rowNote(t, "Menu surface")),
     )
-    .child(overlay({ t }));
+    .child(overlay(t));
 }

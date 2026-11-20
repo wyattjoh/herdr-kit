@@ -10,6 +10,7 @@ import {
   staticRow,
   statusMark,
   HERDR_ICONS,
+  ROW,
   type Theme,
 } from "@wyattjoh/herdr-ui";
 import { noop, runTone } from "./shared";
@@ -32,7 +33,7 @@ export function checks(t: Theme): Element {
       )
       .child(
         staticRow(t, "check-lint")
-          .h(34)
+          .h(ROW.list)
           .child(statusMark(t, HERDR_ICONS.spinner, runTone("running"), "running · unavailable"))
           .child(rowNote(t, "lint"))
           .child(button(t, { id: "check-lint-open", label: "Logs", onClick: noop })),

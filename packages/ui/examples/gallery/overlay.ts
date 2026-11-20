@@ -22,9 +22,9 @@ import { ICONS, noop } from "./shared";
 /**
  * Builds the floating panel example with a fixed-width frame and capped scroll area.
  */
-export function overlay(options: { t: Theme }): Element {
-  const { t } = options;
+export function overlay(t: Theme): Element {
   const width = 320;
+  const scrollCap = 120;
   const tools = fitLabels(
     [
       { id: "follow", label: "Follow agent", labelled: false },
@@ -72,11 +72,11 @@ export function overlay(options: { t: Theme }): Element {
     .child(
       panelBody({
         id: "gallery-float-body",
-        scrollCap: 120,
+        scrollCap,
         hold: stopPress,
         content: floatScrollRegion(
           "gallery-float-scroll",
-          120,
+          scrollCap,
           cardSection(
             cardHeader(t, "float-header", "Overlay"),
             card(t, "float-card").child(cardNote(t, "Capped and scrolling")),
