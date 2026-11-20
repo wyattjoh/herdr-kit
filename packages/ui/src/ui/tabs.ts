@@ -2,6 +2,7 @@
 import { div, type Context, type Element } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { TAB } from "../tokens";
+import { pressable } from "./press";
 import type { Theme } from "./theme";
 
 /**
@@ -50,12 +51,9 @@ export function tabBar<Id extends string>(
           .text_size(TAB.textSize)
           .when(tab.selected, (item) => item.bg(t.selected).text_color(t.foreground))
           .when(!tab.selected, (item) =>
-            item.text_color(locked ? t.dim : t.muted).when(!locked, (item) =>
-              item
-                .cursor_pointer()
-                .hover((style) => style.bg(t.hover))
-                .on_click((_event, cx) => options.onTab(tab.id, cx)),
-            ),
+            item
+              .text_color(locked ? t.dim : t.muted)
+              .when(!locked, (item) => pressable(item, (cx) => options.onTab(tab.id, cx), t.hover)),
           )
           .child(tab.label),
       ),

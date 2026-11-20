@@ -75,11 +75,9 @@ export type DocumentCardOptions = {
 export function documentCard(t: Theme, options: DocumentCardOptions): Element {
   const { id, open } = options;
   const header = cardHeader(t, `document-header-${id}`, options.title ?? "Document");
-  if (options.text.trim() === "")
-    return cardSection(
-      header,
-      card(t, `document-card-${id}`).child(cardNote(t, options.empty ?? "No document")),
-    );
+  const section = (body: Element): Element =>
+    cardSection(header, card(t, `document-card-${id}`).child(body));
+  if (options.text.trim() === "") return section(cardNote(t, options.empty ?? "No document"));
   const markdown = TextView.markdown(`document-${id}`, options.text)
     .selectable()
     .text_size(TEXT.body)
@@ -94,27 +92,24 @@ export function documentCard(t: Theme, options: DocumentCardOptions): Element {
         .overflow_hidden()
         .child(markdown)
         .child(documentFade(t, `document-fade-${id}`, options.surface));
-  return cardSection(
-    header,
-    card(t, `document-card-${id}`).child(
-      cardBody().child(
-        v_flex()
-          .gap(DOCUMENT.gap)
-          .child(content)
-          .child(
-            h_flex()
-              .w_full()
-              .justify_center()
-              .child(
-                button(t, {
-                  id: `document-toggle-${id}`,
-                  icon: open ? HERDR_ICONS.chevronDown : HERDR_ICONS.chevronRight,
-                  label: open ? "Show less" : "Reveal more",
-                  onClick: options.toggle,
-                }),
-              ),
-          ),
-      ),
+  return section(
+    cardBody().child(
+      v_flex()
+        .gap(DOCUMENT.gap)
+        .child(content)
+        .child(
+          h_flex()
+            .w_full()
+            .justify_center()
+            .child(
+              button(t, {
+                id: `document-toggle-${id}`,
+                icon: open ? HERDR_ICONS.chevronDown : HERDR_ICONS.chevronRight,
+                label: open ? "Show less" : "Reveal more",
+                onClick: options.toggle,
+              }),
+            ),
+        ),
     ),
   );
 }

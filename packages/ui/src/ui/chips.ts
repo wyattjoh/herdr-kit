@@ -4,6 +4,8 @@ import { div, svg, type Color, type Context, type Element } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { tint } from "../color";
 import { CHIP } from "../tokens";
+import { dataColor } from "./data-color";
+import { pressable } from "./press";
 import type { Theme } from "./theme";
 
 /**
@@ -65,7 +67,7 @@ export function labelChip(t: Theme, options: LabelChipOptions): Element {
       svg(options.icon)
         .size(CHIP.iconSize)
         .flex_none()
-        .text_color((options.color as Color | undefined) ?? t.muted),
+        .text_color(dataColor(options.color, t.muted)),
     )
     .child(div().min_w_0().truncate().child(options.label));
 }
@@ -131,12 +133,7 @@ export function toggleChip(t: Theme, options: ToggleChipOptions): Element {
         .border_color(t.border)
         .text_color(onClick === undefined ? t.dim : t.muted),
     )
-    .when(onClick !== undefined, (chip) =>
-      chip
-        .cursor_pointer()
-        .hover((style) => style.bg(t.hover))
-        .on_click((_event, cx) => onClick!(cx)),
-    )
+    .when(onClick !== undefined, (chip) => pressable(chip, onClick, t.hover))
     .when(color !== undefined, (chip) =>
       chip.child(
         div()

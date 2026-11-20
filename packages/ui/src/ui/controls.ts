@@ -3,6 +3,7 @@
 import { div, svg, type Context, type Element } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { BUTTON_STYLE, LIT_STYLE, type ButtonStyle } from "../toolbar";
+import { pressable } from "./press";
 import { role, type Theme } from "./theme";
 
 /**
@@ -61,6 +62,7 @@ export type ButtonOptions = {
 export function button(t: Theme, options: ButtonOptions): Element {
   const s = options.style ?? BUTTON_STYLE;
   const labelled = options.labelled ?? true;
+  const truncate = options.truncateLabel === true;
   const tooltip = options.tooltip ?? (labelled ? undefined : options.label);
   const { onClick, icon } = options;
   return h_flex()
@@ -68,19 +70,14 @@ export function button(t: Theme, options: ButtonOptions): Element {
     .h(s.height)
     .px(s.paddingX)
     .gap(s.gap)
-    .when(options.truncateLabel !== true, (el) => el.flex_none())
+    .when(!truncate, (el) => el.flex_none())
     .items_center()
-    .when(options.truncateLabel === true, (el) => el.min_w_0())
+    .when(truncate, (el) => el.min_w_0())
     .rounded(s.radius)
     .text_size(s.textSize)
     .bg(role(t, s.background))
     .text_color(onClick === undefined ? t.dim : role(t, s.text))
-    .when(onClick !== undefined, (el) =>
-      el
-        .cursor_pointer()
-        .hover((style) => style.bg(role(t, s.hover)))
-        .on_click((_event, cx) => onClick!(cx)),
-    )
+    .when(onClick !== undefined, (el) => pressable(el, onClick, role(t, s.hover)))
     .when(icon !== undefined, (el) =>
       el.child(
         svg(icon!)
@@ -90,11 +87,7 @@ export function button(t: Theme, options: ButtonOptions): Element {
       ),
     )
     .when(labelled, (el) =>
-      el.child(
-        options.truncateLabel === true
-          ? div().flex_1().min_w_0().truncate().child(options.label)
-          : options.label,
-      ),
+      el.child(truncate ? div().flex_1().min_w_0().truncate().child(options.label) : options.label),
     )
     .when(tooltip !== undefined, (el) => el.tooltip(tooltip!));
 }
@@ -151,12 +144,7 @@ export function togglePill(t: Theme, options: TogglePillOptions): Element {
     .bg(role(t, lit ? LIT_STYLE.background : s.background))
     .text_color(onClick === undefined ? t.dim : role(t, lit ? LIT_STYLE.text : s.text))
     .when(tooltip !== undefined, (el) => el.tooltip(tooltip!))
-    .when(onClick !== undefined, (el) =>
-      el
-        .cursor_pointer()
-        .hover((style) => style.bg(role(t, s.hover)))
-        .on_click((_event, cx) => onClick!(cx)),
-    )
+    .when(onClick !== undefined, (el) => pressable(el, onClick, role(t, s.hover)))
     .when(icon !== undefined, (el) => el.child(svg(icon!).size(s.iconSize).flex_none()))
     .child(options.label);
 }

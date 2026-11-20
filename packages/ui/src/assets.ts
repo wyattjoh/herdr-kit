@@ -13,6 +13,20 @@ export const ICONS_DIR: string = fileURLToPath(new URL("../assets/icons/", impor
 const PACKAGE_DIR = fileURLToPath(new URL("../", import.meta.url));
 const LICENSES_DIR = join(PACKAGE_DIR, "licenses");
 
+async function copyFiles(
+  sourceDir: string,
+  modDir: string,
+  files: readonly string[],
+): Promise<string[]> {
+  return Promise.all(
+    files.map(async (file) => {
+      const destination = join(modDir, file);
+      await copyFile(join(sourceDir, file), destination);
+      return destination;
+    }),
+  );
+}
+
 /**
  * Copies bundled icons into a staged mod folder, where `bundledIconPaths(<folder name>)` finds
  * them. Herdr's hot reload ignores symlinks, so these are real copies.
@@ -25,13 +39,10 @@ export async function copyIcons(
   names: readonly BundledIcon[] = Object.keys(BUNDLED_ICONS) as BundledIcon[],
 ): Promise<string[]> {
   await mkdir(modDir, { recursive: true });
-  return Promise.all(
-    names.map(async (name) => {
-      const fileName = BUNDLED_ICONS[name];
-      const destination = join(modDir, fileName);
-      await copyFile(join(ICONS_DIR, fileName), destination);
-      return destination;
-    }),
+  return copyFiles(
+    ICONS_DIR,
+    modDir,
+    names.map((name) => BUNDLED_ICONS[name]),
   );
 }
 
@@ -45,11 +56,5 @@ export async function copyNotices(modDir: string): Promise<string[]> {
   const licenses = (await readdir(LICENSES_DIR)).filter((name) => name.endsWith(".txt")).sort();
   await mkdir(join(modDir, "licenses"), { recursive: true });
   const files = ["LICENSE", "NOTICE.md", ...licenses.map((name) => join("licenses", name))];
-  return Promise.all(
-    files.map(async (file) => {
-      const destination = join(modDir, file);
-      await copyFile(join(PACKAGE_DIR, file), destination);
-      return destination;
-    }),
-  );
+  return copyFiles(PACKAGE_DIR, modDir, files);
 }

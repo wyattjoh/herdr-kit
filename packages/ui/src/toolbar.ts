@@ -1,5 +1,6 @@
 // How a panel button looks, and which of a row's buttons fit their labels in a fixed width.
 // Pure, so the label fitting is testable without Herdr.
+import { TEXT } from "./tokens";
 
 /**
  * How a panel button looks: the stock `tabs` mod's `panelButton` (Files and Changes in Herdr's
@@ -28,7 +29,7 @@ export const BUTTON_STYLE: ButtonStyle = {
   paddingX: 8,
   gap: 5,
   radius: 6,
-  textSize: 12,
+  textSize: TEXT.label,
   iconSize: 14,
   background: "chrome",
   text: "muted",
@@ -90,9 +91,12 @@ export function toolWidth(tool: Tool, style: ButtonStyle = BUTTON_STYLE): number
  * @param style Their style.
  * @returns Its width in px.
  */
-export const toolsWidth = (tools: readonly Tool[], style: ButtonStyle = BUTTON_STYLE): number =>
-  tools.reduce((sum, tool) => sum + toolWidth(tool, style), 0) +
-  TOOL_GAP * Math.max(0, tools.length - 1);
+export function toolsWidth(tools: readonly Tool[], style: ButtonStyle = BUTTON_STYLE): number {
+  return (
+    tools.reduce((sum, tool) => sum + toolWidth(tool, style), 0) +
+    TOOL_GAP * Math.max(0, tools.length - 1)
+  );
+}
 
 /**
  * Gives labels to a fixed-width row's buttons while they fit, a group at a time, so the row

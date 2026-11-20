@@ -329,8 +329,8 @@ export const MENU_ROW_STYLE = {
  * Domain-neutral tones, each the theme role the Tasks panel uses for that meaning: `neutral`
  * for not started (slate), `info` for ready (blue), `active` for in progress (Herdr's amber
  * `working`), `success` for done (green), `danger` for canceled or blocked (red), `warning`
- * for blocking (yellow), and `accent` for the host theme's accent color. Herdr's `done` role is
- * blue in its default theme, so success doesn't use it.
+ * for blocking (yellow), `accent` for the host theme's accent color, and `muted` for secondary
+ * text. Herdr's `done` role is blue in its default theme, so success doesn't use it.
  */
 export const TONES = {
   neutral: "dim",
@@ -354,7 +354,6 @@ export type Tone = keyof typeof TONES;
  * @returns A function giving a state's theme role.
  * @example const statusTone = toneMap({ queued: "neutral", running: "active", passed: "success" });
  */
-export const toneMap =
-  <S extends string>(tones: Readonly<Record<S, Tone>>) =>
-  (state: S): ThemeRole =>
-    TONES[tones[state]];
+export function toneMap<S extends string>(tones: Readonly<Record<S, Tone>>) {
+  return (state: S): ThemeRole => TONES[tones[state]];
+}

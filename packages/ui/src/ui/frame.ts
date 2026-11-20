@@ -5,7 +5,7 @@ import { div, svg, type Element } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
 import { BRAND, PANEL } from "../tokens";
 import { BUTTON_STYLE, TOOL_GAP } from "../toolbar";
-import type { Theme } from "./theme";
+import type { Hold, Theme } from "./theme";
 
 /**
  * How a column takes height. In a pane (`scrollCap` undefined) it fills the space left. A
@@ -144,7 +144,7 @@ export function toolRow(options: {
  */
 export function panelBody(options: {
   scrollCap?: number;
-  hold: <E extends Element>(el: E) => E;
+  hold: Hold;
   content: Element;
   id?: string;
   contentId?: string;

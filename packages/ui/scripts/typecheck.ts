@@ -13,14 +13,8 @@ for (const name of ["gpui-kit.d.ts", "herdr.d.ts"])
     process.exit(1);
   }
 const config = {
+  extends: "../tsconfig.json",
   compilerOptions: {
-    target: "ES2022",
-    module: "ESNext",
-    moduleResolution: "bundler",
-    lib: ["ES2022"],
-    strict: true,
-    noEmit: true,
-    skipLibCheck: true,
     types: [],
     paths: { herdr: [resolve(home, "herdr.d.ts")] },
   },
