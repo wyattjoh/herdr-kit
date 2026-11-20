@@ -1,11 +1,19 @@
 import { describe, expect, test } from "bun:test";
-import { div } from "gpui-kit";
 import { byId, nodeOf, walk } from "@wyattjoh/herdr-dev/test/renderer";
+import { THEME as t } from "../test/theme";
+import { div } from "gpui-kit";
 import { HERDR_ICONS } from "../icons";
 import { MENU } from "../menu-metrics";
 import { MENU_ROW_STYLE } from "../tokens";
-import { THEME as t } from "../test/theme";
-import { menuRow } from "./menu";
+import { menuPanel, menuRow } from "./menu";
+
+describe("menuPanel", () => {
+  test("a menu panel stops presses", () => {
+    expect(nodeOf(menuPanel(t, 220)).calls.filter((call) => call === "on_mouse_down")).toHaveLength(
+      2,
+    );
+  });
+});
 
 describe("menuRow", () => {
   test("matches the compact menu row and draws its optional affordances", () => {

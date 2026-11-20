@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { byId, texts, walk } from "@wyattjoh/herdr-dev/test/renderer";
+import { byId, nodeOf, texts, walk } from "@wyattjoh/herdr-dev/test/renderer";
 import { STATE, TEXT } from "../tokens";
 import { THEME as t } from "../test/theme";
 import { button } from "./controls";
-import { compactStateBlock, toneLine } from "./states";
+import { compactStateBlock, errorState, stateBlock, toneLine } from "./states";
 
 describe("compactStateBlock", () => {
   test("renders a smaller title and detail with an optional action", () => {
@@ -28,6 +28,34 @@ describe("compactStateBlock", () => {
       text_color: t.muted,
     });
     expect(walk(block)[0]!.styles.gap).toBe(STATE.compactGap);
+  });
+});
+
+describe("stateBlock and errorState", () => {
+  test("a state block says its title, detail and action", () => {
+    const block = stateBlock(t, {
+      title: "Nothing",
+      detail: "Pick one",
+      action: button(t, { id: "go", label: "Go", onClick: () => {} }),
+    });
+    expect(texts(block)).toEqual(["Nothing", "Pick one", "Go"]);
+    expect(nodeOf(block).styles.id).toBeUndefined();
+    expect(walk(block).find((node) => node.children.includes("Nothing"))!.styles.text_color).toBe(
+      t.foreground,
+    );
+  });
+  test("a state block accepts an id and an error state defaults to danger tone", () => {
+    const identified = stateBlock(t, { id: "missing-state", title: "Nothing" });
+    const failure = errorState(t, { id: "error-state", title: "Failed" });
+    const warning = errorState(t, { title: "Warning", tone: "warning" });
+    expect(nodeOf(identified).styles.id).toBe("missing-state");
+    expect(byId(failure, "error-state")).toBeDefined();
+    expect(walk(failure).find((node) => node.children.includes("Failed"))!.styles.text_color).toBe(
+      t.ansi1,
+    );
+    expect(walk(warning).find((node) => node.children.includes("Warning"))!.styles.text_color).toBe(
+      t.ansi3,
+    );
   });
 });
 
