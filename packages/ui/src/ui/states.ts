@@ -20,13 +20,28 @@ export type StateOptions = {
   action?: Element;
 };
 
-const drawState = (t: Theme, options: StateOptions, titleColor: Theme[string]): Element =>
+type StateMetrics = { gap: number; titleSize: number; detailSize: number };
+const REGULAR: StateMetrics = { gap: STATE.gap, titleSize: TEXT.body, detailSize: TEXT.label };
+const COMPACT: StateMetrics = {
+  gap: STATE.compactGap,
+  titleSize: TEXT.label,
+  detailSize: TEXT.caption,
+};
+
+const drawState = (
+  t: Theme,
+  options: StateOptions,
+  titleColor: Theme[string],
+  metrics: StateMetrics = REGULAR,
+): Element =>
   v_flex()
     .when(options.id !== undefined, (el) => el.id(options.id!))
-    .gap(STATE.gap)
-    .child(div().text_size(TEXT.body).font_medium().text_color(titleColor).child(options.title))
+    .gap(metrics.gap)
+    .child(
+      div().text_size(metrics.titleSize).font_medium().text_color(titleColor).child(options.title),
+    )
     .when(options.detail !== undefined, (el) =>
-      el.child(div().text_size(TEXT.label).text_color(t.muted).child(options.detail!)),
+      el.child(div().text_size(metrics.detailSize).text_color(t.muted).child(options.detail!)),
     )
     .when(options.action !== undefined, (el) => el.child(h_flex().child(options.action!)));
 
@@ -46,14 +61,7 @@ export const stateBlock = (t: Theme, options: StateOptions): Element =>
  * @returns The compact state block.
  */
 export const compactStateBlock = (t: Theme, options: StateOptions): Element =>
-  v_flex()
-    .when(options.id !== undefined, (el) => el.id(options.id!))
-    .gap(STATE.compactGap)
-    .child(div().text_size(TEXT.label).font_medium().text_color(t.foreground).child(options.title))
-    .when(options.detail !== undefined, (el) =>
-      el.child(div().text_size(TEXT.caption).text_color(t.muted).child(options.detail!)),
-    )
-    .when(options.action !== undefined, (el) => el.child(h_flex().child(options.action!)));
+  drawState(t, options, t.foreground, COMPACT);
 
 /**
  * Nothing to show yet, and how to get something.

@@ -70,7 +70,7 @@ export function menuMetrics(options: MenuMetricsOptions = {}): MenuMetrics {
     inputHeight,
     gap,
     icon,
-    visibleRows: options.visibleRows ?? Math.floor((height - padding * 2 - inputHeight) / row),
+    visibleRows: options.visibleRows ?? Math.floor((row * rows - inputHeight) / row),
   };
 }
 
@@ -86,11 +86,13 @@ export const MENU: MenuMetrics = menuMetrics();
  * @param visibleRows The row budget; defaults to the menu's.
  * @returns At least one row, capped at the budget.
  */
-export const choicesHeight = (
+export function choicesHeight(
   metrics: MenuMetrics,
   count: number,
   visibleRows: number = metrics.visibleRows,
-): number => Math.min(Math.max(count, 1), visibleRows) * metrics.row;
+): number {
+  return Math.min(Math.max(count, 1), visibleRows) * metrics.row;
+}
 
 /**
  * Aligns a short child with its parent row, lifting a long child inside the parent's fixed

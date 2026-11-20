@@ -86,6 +86,7 @@ export const cardBody = (): Element => div().px(CARD.paddingX).py(CARD.paddingY)
 
 /**
  * A card's dimmed note, for an empty card or a "N more." footer.
+ * @param t The theme.
  * @param text The note.
  * @returns The padded note.
  */
@@ -102,6 +103,9 @@ export const cardNote = (t: Theme, text: string): Element =>
  */
 const ruled = (t: Theme, el: Element, first: boolean): Element =>
   el.when(!first, (item) => item.border_t(1).border_color(t.border));
+
+const rowBase = (id: string): Element =>
+  h_flex().id(id).flex_none().px(CARD.paddingX).gap(CARD.rowGap).items_center();
 
 /**
  * A row of a card, ruled off from the one above; it highlights on hover.
@@ -120,12 +124,7 @@ export const cardRow = (
 ): Element =>
   ruled(
     t,
-    h_flex()
-      .id(id)
-      .flex_none()
-      .px(CARD.paddingX)
-      .gap(CARD.rowGap)
-      .items_center()
+    rowBase(id)
       .cursor_pointer()
       .hover((s) => s.bg(hover)),
     first,
@@ -140,7 +139,7 @@ export const cardRow = (
  * @returns The row; set its height and add its parts.
  */
 export const staticRow = (t: Theme, id: string, first: boolean = false): Element =>
-  ruled(t, h_flex().id(id).flex_none().px(CARD.paddingX).gap(CARD.rowGap).items_center(), first);
+  ruled(t, rowBase(id), first);
 
 /**
  * A card item of several lines, padded like a {@link cardBody} and ruled off from the one above

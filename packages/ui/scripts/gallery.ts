@@ -53,10 +53,9 @@ for (const forbidden of ["node:fs", "copyIcons", "fileURLToPath"])
   if (bundle.includes(forbidden))
     throw new Error(`the bundle pulled in the build-side helper (${forbidden})`);
 
-const assets = (await import(Bun.resolveSync("@wyattjoh/herdr-ui/assets", CONSUMER))) as {
-  copyIcons: (dir: string) => Promise<string[]>;
-  copyNotices: (dir: string) => Promise<string[]>;
-};
+const assets = (await import(
+  Bun.resolveSync("@wyattjoh/herdr-ui/assets", CONSUMER)
+)) as typeof import("../src/assets");
 const copied = await assets.copyIcons(DIR);
 const notices = await assets.copyNotices(DIR);
 console.log(

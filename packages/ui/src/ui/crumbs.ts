@@ -2,8 +2,10 @@
 import { div, svg, type Context, type Element } from "gpui-kit";
 import { h_flex, Popover, v_flex } from "gpui-base";
 import { HERDR_ICONS } from "../icons";
-import { CARD, CRUMB, PANEL, PICKER, TEXT, TITLE } from "../tokens";
+import { CRUMB, PANEL, PICKER, TEXT, TITLE } from "../tokens";
 import { BUTTON_STYLE } from "../toolbar";
+import { foldChevron } from "./cards";
+import { dataColor } from "./data-color";
 import { letThrough, type Hold, type Theme } from "./theme";
 
 /**
@@ -160,7 +162,7 @@ const optionIcon = (t: Theme, option: PickerOption): Element =>
   svg(option.icon!)
     .size(BUTTON_STYLE.iconSize)
     .flex_none()
-    .text_color((option.color as Theme[string] | undefined) ?? t.muted);
+    .text_color(dataColor(option.color, t.muted));
 
 /**
  * A breadcrumb with a dropdown: the chosen option (or "any") with its icon, which browses it when
@@ -173,8 +175,10 @@ export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
   const hold = options.hold ?? letThrough;
   const keyOf = (choice: PickerOption | undefined) => choice?.key ?? choice?.name;
   const chosen = options.choices.find((choice) => keyOf(choice) === options.chosen);
-  const option = (choice: PickerOption | undefined) =>
-    h_flex()
+  const chosenName = chosen?.name ?? options.any;
+  const option = (choice: PickerOption | undefined) => {
+    const isChosen = keyOf(choice) === keyOf(chosen);
+    return h_flex()
       .id(`${options.id}-${keyOf(choice) ?? "all"}`)
       .h(BUTTON_STYLE.height)
       .flex_none()
@@ -182,7 +186,7 @@ export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
       .gap(PICKER.optionGap)
       .items_center()
       .text_size(TEXT.label)
-      .text_color(keyOf(choice) === keyOf(chosen) ? t.foreground : t.muted)
+      .text_color(isChosen ? t.foreground : t.muted)
       .hover((style) => style.bg(t.hover))
       .on_click((_event, cx) => options.pick(keyOf(choice), cx))
       .when(choice?.icon !== undefined, (el) => el.child(optionIcon(t, choice!)))
@@ -193,9 +197,10 @@ export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
           .truncate()
           .child(choice?.name ?? options.any),
       )
-      .when(keyOf(choice) === keyOf(chosen), (el) =>
+      .when(isChosen, (el) =>
         el.child(svg(HERDR_ICONS.check).size(BUTTON_STYLE.iconSize).flex_none()),
       );
+  };
   const label = hold(
     h_flex()
       .id(`${options.id}-crumb`)
@@ -205,15 +210,10 @@ export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
       .cursor_pointer()
       .text_color(options.current ? t.foreground : t.muted)
       .hover((style) => style.text_color(t.foreground))
-      .tooltip(`Browse ${chosen?.name ?? options.any}`)
+      .tooltip(`Browse ${chosenName}`)
       .on_click((_event, cx) => options.browse(cx))
       .when(chosen?.icon !== undefined, (el) => el.child(optionIcon(t, chosen!)))
-      .child(
-        div()
-          .min_w_0()
-          .truncate()
-          .child(chosen?.name ?? options.any),
-      ),
+      .child(div().min_w_0().truncate().child(chosenName)),
   );
   const chevron = h_flex()
     .id(`${options.id}-chevron`)
@@ -223,7 +223,7 @@ export function crumbPicker(t: Theme, options: CrumbPickerOptions): Element {
     .hover((style) => style.bg(t.hover))
     .rounded(PICKER.chevronRadius)
     .tooltip(options.switchTooltip ?? `Switch ${options.id}`)
-    .child(svg(HERDR_ICONS.chevronDown).size(CARD.chevronSize).flex_none().text_color(t.dim));
+    .child(foldChevron(t, true));
   return h_flex()
     .gap(2)
     .items_center()
@@ -319,7 +319,4 @@ export function titleRow(t: Theme, options: TitleRowOptions): Element {
  * @returns The icon.
  */
 export const titleIcon = (t: Theme, icon: string, color: string | undefined = undefined): Element =>
-  svg(icon)
-    .size(TITLE.iconSize)
-    .flex_none()
-    .text_color((color as Theme[string] | undefined) ?? t.muted);
+  svg(icon).size(TITLE.iconSize).flex_none().text_color(dataColor(color, t.muted));
