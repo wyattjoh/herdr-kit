@@ -33,34 +33,13 @@ export default class Gallery extends View {
     this.search = InputState.new({ placeholder: "Search" });
   }
 
-  private toggleFold(id: string, cx: Context): void {
-    if (!this.open.delete(id)) this.open.add(id);
+  private update(cx: Context, change: () => void): void {
+    change();
     cx.notify();
   }
 
-  private toggleLabel(name: string, cx: Context): void {
-    if (!this.applied.delete(name)) this.applied.add(name);
-    cx.notify();
-  }
-
-  private setPicker(open: boolean, cx: Context): void {
-    this.picker = open;
-    cx.notify();
-  }
-
-  private selectTab(tab: Tab, cx: Context): void {
-    this.tab = tab;
-    cx.notify();
-  }
-
-  private toggleDocument(cx: Context): void {
-    this.document = !this.document;
-    cx.notify();
-  }
-
-  private togglePill(cx: Context): void {
-    this.shown = !this.shown;
-    cx.notify();
+  private toggle(set: Set<string>, value: string): void {
+    if (!set.delete(value)) set.add(value);
   }
 
   render(): Element {
@@ -75,17 +54,17 @@ export default class Gallery extends View {
         shown: this.shown,
         search: this.search,
       },
-      onTab: (tab, cx) => this.selectTab(tab, cx),
-      onToggleDocument: (cx) => this.toggleDocument(cx),
-      onToggleFold: (id, cx) => this.toggleFold(id, cx),
-      onToggleLabel: (name, cx) => this.toggleLabel(name, cx),
-      onTogglePill: (cx) => this.togglePill(cx),
+      onTab: (tab, cx) => this.update(cx, () => (this.tab = tab)),
+      onToggleDocument: (cx) => this.update(cx, () => (this.document = !this.document)),
+      onToggleFold: (id, cx) => this.update(cx, () => this.toggle(this.open, id)),
+      onToggleLabel: (name, cx) => this.update(cx, () => this.toggle(this.applied, name)),
+      onTogglePill: (cx) => this.update(cx, () => (this.shown = !this.shown)),
     });
     return panelFrame(t, MOD_ID).children([
       ...chrome({
         t,
         picker: this.picker,
-        onPickerOpen: (open, cx) => this.setPicker(open, cx),
+        onPickerOpen: (open, cx) => this.update(cx, () => (this.picker = open)),
       }),
       panelBody({
         contentId: "panel-content",

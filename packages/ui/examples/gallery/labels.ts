@@ -7,7 +7,7 @@ import {
   chipRow,
   labelChip,
   toggleChip,
-  togglePill as togglePillElement,
+  togglePill,
   HERDR_ICONS,
   type Theme,
 } from "@wyattjoh/herdr-ui";
@@ -20,10 +20,10 @@ export function labels(options: {
   t: Theme;
   applied: ReadonlySet<string>;
   shown: boolean;
-  toggleLabel(name: string, cx: Context): void;
+  onToggleLabel(name: string, cx: Context): void;
   onTogglePill(cx: Context): void;
 }): Element {
-  const { t, applied, shown, toggleLabel, onTogglePill } = options;
+  const { t, applied, shown, onToggleLabel, onTogglePill } = options;
   return cardSection(
     cardHeader(t, "labels-header", "Labels"),
     card(t, "labels").child(
@@ -36,7 +36,7 @@ export function labels(options: {
                 label: name,
                 applied: applied.has(name),
                 color: name === "bug" ? "#d73a4a" : undefined,
-                onClick: (cx) => toggleLabel(name, cx),
+                onClick: (cx) => onToggleLabel(name, cx),
               }),
             ),
             toggleChip(t, {
@@ -70,7 +70,7 @@ export function labels(options: {
               tooltip: "CI passing",
               onClick: onTogglePill,
             }),
-            togglePillElement(t, {
+            togglePill(t, {
               id: "pill-inert",
               label: "CI",
               icon: HERDR_ICONS.gitBranch,

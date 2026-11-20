@@ -9,6 +9,7 @@ import {
   labelChip,
   listRow,
   progressBar,
+  ROW,
   rowNote,
   statusMark,
   type Theme,
@@ -21,9 +22,9 @@ import { noop, runTone } from "./shared";
 export function runs(options: {
   t: Theme;
   open: ReadonlySet<string>;
-  toggleFold(id: string, cx: Context): void;
+  onToggleFold(id: string, cx: Context): void;
 }): Element {
-  const { t, open, toggleFold } = options;
+  const { t, open, onToggleFold } = options;
   const states = ["passed", "failed"] as const;
   return cardSection(
     cardHeader(t, "runs-header", "Runs"),
@@ -59,11 +60,11 @@ export function runs(options: {
               onClick: noop,
             }),
           ),
-          rowHeight: 34,
+          rowHeight: ROW.list,
           open: open.has(state),
           first: index === 0,
           last: index === states.length - 1,
-          toggle: (cx) => toggleFold(state, cx),
+          toggle: (cx) => onToggleFold(state, cx),
         }),
       ),
     ),
