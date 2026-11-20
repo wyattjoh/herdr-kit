@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/wyattjoh/herdr-kit/compare/ui-v0.7.0...ui-v0.8.0) (2026-11-20)
+
+
+### Features
+
+* **ui:** let metadataGrid decorate each cell's outer slot ([740c2cd](https://github.com/wyattjoh/herdr-kit/commit/740c2cd2fc2a30b53ebe9bdd909c8c75b5d19b2e))
+
 ## [0.7.0](https://github.com/wyattjoh/herdr-kit/compare/ui-v0.6.0...ui-v0.7.0) (2026-11-19)
 
 
