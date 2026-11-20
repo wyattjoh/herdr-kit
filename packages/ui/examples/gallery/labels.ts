@@ -62,7 +62,7 @@ export function labels(options: {
         )
         .child(
           chipRow([
-            togglePillElement(t, {
+            togglePill(t, {
               id: "pill",
               label: "CI",
               icon: HERDR_ICONS.gitBranch,

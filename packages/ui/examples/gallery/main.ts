@@ -33,7 +33,7 @@ export default class Gallery extends View {
     this.search = InputState.new({ placeholder: "Search" });
   }
 
-  private update(cx: Context, change: () => void): void {
+  private changeState(cx: Context, change: () => void): void {
     change();
     cx.notify();
   }
@@ -54,17 +54,17 @@ export default class Gallery extends View {
         shown: this.shown,
         search: this.search,
       },
-      onTab: (tab, cx) => this.update(cx, () => (this.tab = tab)),
-      onToggleDocument: (cx) => this.update(cx, () => (this.document = !this.document)),
-      onToggleFold: (id, cx) => this.update(cx, () => this.toggle(this.open, id)),
-      onToggleLabel: (name, cx) => this.update(cx, () => this.toggle(this.applied, name)),
-      onTogglePill: (cx) => this.update(cx, () => (this.shown = !this.shown)),
+      onTab: (tab, cx) => this.changeState(cx, () => (this.tab = tab)),
+      onToggleDocument: (cx) => this.changeState(cx, () => (this.document = !this.document)),
+      onToggleFold: (id, cx) => this.changeState(cx, () => this.toggle(this.open, id)),
+      onToggleLabel: (name, cx) => this.changeState(cx, () => this.toggle(this.applied, name)),
+      onTogglePill: (cx) => this.changeState(cx, () => (this.shown = !this.shown)),
     });
     return panelFrame(t, MOD_ID).children([
       ...chrome({
         t,
         picker: this.picker,
-        onPickerOpen: (open, cx) => this.update(cx, () => (this.picker = open)),
+        onPickerOpen: (open, cx) => this.changeState(cx, () => (this.picker = open)),
       }),
       panelBody({
         contentId: "panel-content",
