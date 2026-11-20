@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { lstatSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, hostname, loadavg } from "node:os";
 import { dirname, join } from "node:path";
@@ -8,6 +8,15 @@ import { dirname, join } from "node:path";
 export type CheckOutcome = "PASS" | "FAIL" | "CONNECT_DEADLINE" | "WATCHDOG";
 
 type Owner = { pid: number; hostname: string; startedAt: number; token: string };
+const errno = (error: unknown): string | undefined => (error as NodeJS.ErrnoException).code;
+const readOwner = (path: string): Owner | undefined => {
+  try {
+    return JSON.parse(readFileSync(join(path, "owner.json"), "utf8")) as Owner;
+  } catch {
+    return undefined;
+  }
+};
+const DEFAULT_LOCK_WAIT_MS = 900_000;
 const defaultLock = join(homedir(), ".cache/herdr-check/lock");
 
 /**
@@ -21,7 +30,7 @@ const defaultLock = join(homedir(), ".cache/herdr-check/lock");
 export async function withCheckLock<T>(
   action: (onInterrupt: (cleanup: () => Promise<void>) => void) => Promise<T>,
   lockPath = defaultLock,
-  waitMs = 900_000,
+  waitMs = DEFAULT_LOCK_WAIT_MS,
 ): Promise<T> {
   await mkdir(dirname(lockPath), { recursive: true });
   const token = crypto.randomUUID();
@@ -37,8 +46,8 @@ export async function withCheckLock<T>(
     if (!held) return;
     try {
       const before = lstatSync(lockPath, { bigint: true });
-      const current = JSON.parse(readFileSync(join(lockPath, "owner.json"), "utf8")) as Owner;
-      if (current.token !== token) return;
+      const current = readOwner(lockPath);
+      if (!current || current.token !== token) return;
       writeFileSync(join(lockPath, ".fence"), `release:${token}`, { flag: "wx" });
       const after = lstatSync(lockPath, { bigint: true });
       const fence = readFileSync(join(lockPath, ".fence"), "utf8");
@@ -72,27 +81,23 @@ export async function withCheckLock<T>(
   process.on("SIGINT", onInt);
   process.on("SIGTERM", onTerm);
   process.on("exit", onExit);
-  const deadlineForOwner = (path: string): boolean => {
+  const reclaimStaleLock = (path: string): boolean => {
     try {
       const before = lstatSync(path, { bigint: true });
-      let current: Owner;
-      try {
-        current = JSON.parse(readFileSync(join(path, "owner.json"), "utf8")) as Owner;
-      } catch {
-        return false;
-      }
+      const current = readOwner(path);
+      if (!current) return false;
       if (current.hostname !== hostname()) return false;
       try {
         process.kill(current.pid, 0);
         return false;
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== "ESRCH") return false;
+        if (errno(error) !== "ESRCH") return false;
       }
       // A shared exclusive fence arbitrates with other reclaimers and release.
       try {
         writeFileSync(join(path, ".fence"), `reclaim:${current.token}`, { flag: "wx" });
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === "EEXIST") return false;
+        if (errno(error) === "EEXIST") return false;
         throw error;
       }
       const after = lstatSync(path, { bigint: true });
@@ -108,12 +113,11 @@ export async function withCheckLock<T>(
         renameSync(path, tombstone);
         return true;
       } catch (error) {
-        if (["ENOENT", "EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? ""))
-          return false;
+        if (["ENOENT", "EEXIST", "ENOTEMPTY"].includes(errno(error) ?? "")) return false;
         throw error;
       }
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") return true;
+      if (errno(error) === "ENOENT") return true;
       throw error;
     }
   };
@@ -123,9 +127,8 @@ export async function withCheckLock<T>(
         await rename(pending, lockPath);
         held = true;
       } catch (error) {
-        if (!["EEXIST", "ENOTEMPTY"].includes((error as NodeJS.ErrnoException).code ?? ""))
-          throw error;
-        if (deadlineForOwner(lockPath)) continue;
+        if (!["EEXIST", "ENOTEMPTY"].includes(errno(error) ?? "")) throw error;
+        if (reclaimStaleLock(lockPath)) continue;
         if (Date.now() >= deadline)
           throw new Error(`Timed out waiting for shared Herdr checker lock: ${lockPath}`);
         await Bun.sleep(250);
@@ -151,9 +154,7 @@ export async function withCheckLock<T>(
 export async function hashTree(directory: string): Promise<string> {
   const files: string[] = [];
   const visit = async (dir: string) => {
-    for (const entry of await (
-      await import("node:fs/promises")
-    ).readdir(dir, { withFileTypes: true })) {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
       const path = join(dir, entry.name);
       if (entry.isDirectory()) await visit(path);
       else if (entry.isFile()) files.push(path);
@@ -187,16 +188,6 @@ export function classifyCheck(output: string, exitCode: number, timedOut = false
 }
 
 /**
- * Return checker diagnostics for a real failure, preserving their original content.
- * @param outcome Classified checker outcome.
- * @param output Combined stdout and stderr from the checker.
- * @returns Diagnostics for FAIL, or an empty string for other outcomes.
- */
-export function checkFailureOutput(outcome: CheckOutcome, output: string): string {
-  return outcome === "FAIL" ? output : "";
-}
-
-/**
  * Print a checker outcome and preserve its diagnostics when validation fails.
  * @param name Mod folder name.
  * @param outcome Classified checker result.
@@ -210,8 +201,7 @@ export function reportCheckResult(
   output: string,
 ): void {
   console.log(`${name}: ${outcome} (${timeoutMs}ms budget)`);
-  const failureOutput = checkFailureOutput(outcome, output);
-  if (failureOutput) console.error(failureOutput);
+  if (outcome === "FAIL" && output) console.error(output);
 }
 
 /**
@@ -253,13 +243,13 @@ export function isLaunchdJobLive(
     probe(pid, 0);
     return true;
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ESRCH") return false;
-    if ((error as NodeJS.ErrnoException).code === "EPERM") return true;
+    if (errno(error) === "ESRCH") return false;
+    if (errno(error) === "EPERM") return true;
     throw error;
   }
 }
 
-async function staleLaunchdJobs(): Promise<void> {
+function staleLaunchdJobs(): void {
   if (process.platform !== "darwin") return;
   const result = Bun.spawnSync(["launchctl", "list"]);
   if (result.exitCode !== 0) throw new Error("Unable to inspect launchd checker jobs");
@@ -280,7 +270,7 @@ async function stopAndReap(child: ReturnType<typeof Bun.spawn>): Promise<void> {
   }
 }
 
-async function appVersion(): Promise<string> {
+function appVersion(): string {
   const result = Bun.spawnSync(["herdr-app", "--version"]);
   return result.exitCode === 0 ? result.stdout.toString().trim() : "unknown";
 }
@@ -297,15 +287,16 @@ export async function checkMods(
 ): Promise<{ name: string; outcome: CheckOutcome; cached: boolean }[]> {
   const cacheDir = join(homedir(), ".cache/herdr-check/results");
   await mkdir(cacheDir, { recursive: true });
-  const app = await appVersion();
+  const app = appVersion();
   const results = [];
+  const useCache = process.env.HERDR_CHECK_CACHE !== "0";
   for (const name of names) {
     const directory = join(stageHome, "mods", name);
     const key = createHash("sha256")
       .update(`${await hashTree(directory)}\0${app}`)
       .digest("hex");
     const cachePath = join(cacheDir, `${key}.json`);
-    if (process.env.HERDR_CHECK_CACHE !== "0" && (await Bun.file(cachePath).exists())) {
+    if (useCache && (await Bun.file(cachePath).exists())) {
       results.push({ name, outcome: "PASS" as const, cached: true });
       console.log(`${name}: PASS (cached)`);
       continue;
@@ -313,7 +304,7 @@ export async function checkMods(
     const outcome = await withCheckLock(
       async (onInterrupt) => {
         for (let attempt = 0; ; attempt++) {
-          await staleLaunchdJobs();
+          staleLaunchdJobs();
           const timeout = Number(
             process.env.HERDR_CHECK_TIMEOUT_MS ?? Math.max(180_000, loadavg()[0] * 30_000),
           );
@@ -338,7 +329,7 @@ export async function checkMods(
           const output = stdout + stderr;
           const classification = classifyCheck(output, code, timedOut);
           if (classification !== "CONNECT_DEADLINE") {
-            if (classification === "PASS" && process.env.HERDR_CHECK_CACHE !== "0")
+            if (classification === "PASS" && useCache)
               await writeFile(cachePath, JSON.stringify({ key, outcome: "PASS" }));
             reportCheckResult(name, classification, timeout, output);
             return classification;
@@ -350,7 +341,7 @@ export async function checkMods(
         }
       },
       defaultLock,
-      Number(process.env.HERDR_CHECK_LOCK_WAIT_MS ?? 900_000),
+      Number(process.env.HERDR_CHECK_LOCK_WAIT_MS ?? DEFAULT_LOCK_WAIT_MS),
     );
     results.push({ name, outcome, cached: false });
     if (outcome !== "PASS") throw new Error(`herdr-app check ${outcome.toLowerCase()} for ${name}`);

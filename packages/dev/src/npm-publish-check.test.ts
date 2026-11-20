@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { findPublishCorrections, isAlreadyPublished } from "./npm-publish-check";
 
-describe("findPublishCorrections", () => {
+describe("npm publish output", () => {
   test("detects auto-corrected package metadata", () => {
     expect(
       findPublishCorrections(

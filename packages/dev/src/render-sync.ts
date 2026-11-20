@@ -12,7 +12,10 @@ export async function findFastTimers(root: string): Promise<string[]> {
   const visit = async (directory: string) => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name);
-      if (entry.isDirectory()) await visit(path);
+      if (entry.isDirectory()) {
+        await visit(path);
+        continue;
+      }
       if (
         !entry.isFile() ||
         !/\.tsx?$/.test(entry.name) ||

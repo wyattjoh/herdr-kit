@@ -27,10 +27,10 @@
   },
   "scripts": {
     "test": "bun test src",
-    "lint:render-sync": "bun src/render-sync.ts",
+    "lint:render-sync": "bun src/render-sync.ts src ../ui/src",
     "typecheck": "tsc --noEmit",
     "pack:check": "bun src/npm-publish-check.ts",
-    "check:fast": "bun src/render-sync.ts src ../ui/src && bun run typecheck && bun run test && bun run pack:check"
+    "check:fast": "bun run lint:render-sync && bun run typecheck && bun run test && bun run pack:check"
   },
   "devDependencies": {
     "@types/bun": "1.4.4",
